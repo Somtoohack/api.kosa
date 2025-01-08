@@ -1,0 +1,73 @@
+[
+    {
+      "id": "1",
+      "full_name": "Adekunle Adebayo",
+      "bank_name": "Zenith Bank",
+      "bank_code": "057",
+      "account_number": "1234567890"
+    },
+    {
+      "id": "2",
+      "full_name": "Chioma Okeke",
+      "bank_name": "GTBank",
+      "bank_code": "058",
+      "account_number": "2345678901"
+    },
+    {
+      "id": "3",
+      "full_name": "Emeka Nwosu",
+      "bank_name": "First Bank",
+      "bank_code": "011",
+      "account_number": "3456789012"
+    },
+    {
+      "id": "4",
+      "full_name": "Aisha Abubakar",
+      "bank_name": "Access Bank",
+      "bank_code": "044",
+      "account_number": "4567890123"
+    },
+    {
+      "id": "5",
+      "full_name": "Tunde Balogun",
+      "bank_name": "UBA",
+      "bank_code": "033",
+      "account_number": "5678901234"
+    },
+    {
+      "id": "6",
+      "full_name": "Ngozi Eze",
+      "bank_name": "Stanbic IBTC",
+      "bank_code": "221",
+      "account_number": "6789012345"
+    },
+    {
+      "id": "7",
+      "full_name": "Bola Ajayi",
+      "bank_name": "Union Bank",
+      "bank_code": "032",
+      "account_number": "7890123456"
+    },
+    {
+      "id": "8",
+      "full_name": "Funke Oladipo",
+      "bank_name": "Ecobank",
+      "bank_code": "050",
+      "account_number": "8901234567"
+    },
+    {
+      "id": "9",
+      "full_name": "Suleiman Bello",
+      "bank_name": "Fidelity Bank",
+      "bank_code": "070",
+      "account_number": "9012345678"
+    },
+    {
+      "id": "10",
+      "full_name": "Ifeanyi Chukwu",
+      "bank_name": "FCMB",
+      "bank_code": "214",
+      "account_number": "0123456789"
+    }
+  ]
+  

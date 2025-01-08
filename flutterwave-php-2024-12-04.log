@@ -1,0 +1,6 @@
+[2024-12-04T16:34:01.041482+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Creating new Virtual Account. [] []
+[2024-12-04T16:34:01.043268+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Payload Confirmed. [] []
+[2024-12-04T16:49:27.463887+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Creating new Virtual Account. [] []
+[2024-12-04T16:49:27.465262+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Payload Confirmed. [] []
+[2024-12-04T16:53:41.342321+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Creating new Virtual Account. [] []
+[2024-12-04T16:53:41.343009+00:00] Flutterwave/PHP.NOTICE: VirtualAccount Service::Payload Confirmed. [] []
