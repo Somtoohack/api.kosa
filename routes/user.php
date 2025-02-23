@@ -31,6 +31,7 @@ Route::group(['prefix' => 'user'], function () {
             Route::post('/create-vba', [WalletController::class, 'createVba']);
             Route::post('/create-vba-redbiller', [WalletController::class, 'createVbaRedbiller']);
             Route::get('/get-vba', [WalletController::class, 'fetchVBA']);
+            Route::get('/get-banks', [WalletController::class, 'getBanks']);
             Route::post('/check-charges', [WalletController::class, 'checkCharges']);
             Route::get('/transactions', [WalletController::class, 'getTransactions']);
         });

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Exceptions\InsufficientFundsException;
@@ -24,8 +23,8 @@ class WalletService
         $wallet = $user->load('wallet')->wallet;
 
         return [
-            'balance' => floatval($wallet->balance),
-            'currency' => $wallet->currency,
+            'balance'          => floatval($wallet->balance),
+            'currency'         => $wallet->currency,
             'wallet_reference' => $wallet->reference,
         ];
     }
@@ -46,25 +45,25 @@ class WalletService
         }
 
         $creditCheck = $this->canCredit($wallet, $amount);
-        if (!$creditCheck['can_transact']) {
+        if (! $creditCheck['can_transact']) {
             return [
-                'success' => false,
-                'message' => $creditCheck['message'],
+                'success'       => false,
+                'message'       => $creditCheck['message'],
                 'limit_details' => $creditCheck,
             ];
         }
 
         // Pre-compute the maximum balance check
-        $maxBalance = $wallet->getTierMaxBalance();
+        $maxBalance  = $wallet->getTierMaxBalance();
         $postBalance = $wallet->balance + $amount - 15; // Account for transaction charge
         if ($postBalance > $maxBalance) {
             return [
-                'success' => false,
-                'message' => 'Deposit exceeds maximum allowed balance for this wallet tier.',
-                'current_balance' => $wallet->balance,
-                'max_balance' => $maxBalance,
+                'success'           => false,
+                'message'           => 'Deposit exceeds maximum allowed balance for this wallet tier.',
+                'current_balance'   => $wallet->balance,
+                'max_balance'       => $maxBalance,
                 'amount_receivable' => $postBalance > $maxBalance ? $maxBalance - $wallet->balance : $amount,
-                'post_balance' => $postBalance,
+                'post_balance'      => $postBalance,
             ];
         }
 
@@ -79,7 +78,7 @@ class WalletService
     {
         // Pre-calculate transaction charge
         $transactionChargeDetails = $this->getTransactionChargeConfig($category, $amount);
-        $transactionCharge = $transactionChargeDetails['calculated_charge'];
+        $transactionCharge        = $transactionChargeDetails['calculated_charge'];
 
         try {
             $result = DB::transaction(function () use ($userId, $amount, $type, $category, $transactionCharge) {
@@ -96,7 +95,7 @@ class WalletService
                 }
 
                 $transactionReference = $this->generateReference();
-                $amountAfterCharge = $amount - $transactionCharge;
+                $amountAfterCharge    = $amount - $transactionCharge;
 
                 // Credit or Debit handling
                 if ($type === 'credit') {
@@ -126,15 +125,15 @@ class WalletService
 
                 // Log transaction and charge
                 $transaction = new Transaction([
-                    'wallet_id' => $wallet->id,
-                    'amount' => $amount,
+                    'wallet_id'      => $wallet->id,
+                    'amount'         => $amount,
                     'balance_before' => $initialBalance,
-                    'post_balance' => $wallet->balance,
-                    'charge' => $transactionCharge,
-                    'type' => $type,
-                    'status' => 'success',
-                    'reference' => $transactionReference,
-                    'category' => $category,
+                    'post_balance'   => $wallet->balance,
+                    'charge'         => $transactionCharge,
+                    'type'           => $type,
+                    'status'         => 'success',
+                    'reference'      => $transactionReference,
+                    'category'       => $category,
                 ]);
                 $transaction->save();
 
@@ -143,19 +142,19 @@ class WalletService
                 // Dispatch notification
                 $notificationService = new NotificationService();
                 $notificationService->sendTransactionNotification($wallet->user, [
-                    'user_name' => $wallet->user->name,
-                    'amount' => $amount,
-                    'type' => $type,
-                    'category' => $category,
-                    'status' => 'success',
+                    'user_name'   => $wallet->user->name,
+                    'amount'      => $amount,
+                    'type'        => $type,
+                    'category'    => $category,
+                    'status'      => 'success',
                     'new_balance' => $wallet->balance,
-                    'reference' => $transaction->reference,
-                    'date' => now()->toDateTimeString(),
+                    'reference'   => $transaction->reference,
+                    'date'        => now()->toDateTimeString(),
                 ]);
 
                 return [
-                    'success' => true,
-                    'message' => ucfirst($type) . ' successful',
+                    'success'     => true,
+                    'message'     => ucfirst($type) . ' successful',
                     'new_balance' => $wallet->balance,
                 ];
             });
@@ -179,10 +178,10 @@ class WalletService
         $wallet = $user->wallet;
 
         $debitCheck = $this->canDebit($wallet, $amount);
-        if (!$debitCheck['can_transact']) {
+        if (! $debitCheck['can_transact']) {
             return [
-                'success' => false,
-                'message' => $debitCheck['message'],
+                'success'       => false,
+                'message'       => $debitCheck['message'],
                 'limit_details' => $debitCheck,
             ];
         }
@@ -203,7 +202,7 @@ class WalletService
             ];
         }
 
-        $senderWallet = Wallet::where('user_id', $senderId)->firstOrFail();
+        $senderWallet    = Wallet::where('user_id', $senderId)->firstOrFail();
         $recipientWallet = Wallet::where('user_id', $recipientId)->firstOrFail();
 
         if ($senderWallet->isDebitLoggingDisabled()) {
@@ -221,19 +220,19 @@ class WalletService
         }
 
         $debitCheck = $this->canDebit($senderWallet, $amount);
-        if (!$debitCheck['can_transact']) {
+        if (! $debitCheck['can_transact']) {
             return [
-                'success' => false,
-                'message' => "Sender's " . $debitCheck['message'],
+                'success'       => false,
+                'message'       => "Sender's " . $debitCheck['message'],
                 'limit_details' => $debitCheck,
             ];
         }
 
         $creditCheck = $this->canCredit($recipientWallet, $amount);
-        if (!$creditCheck['can_transact']) {
+        if (! $creditCheck['can_transact']) {
             return [
-                'success' => false,
-                'message' => "Recipient's " . $creditCheck['message'],
+                'success'       => false,
+                'message'       => "Recipient's " . $creditCheck['message'],
                 'limit_details' => $creditCheck,
             ];
         }
@@ -250,8 +249,8 @@ class WalletService
                 $senderWallet->save();
                 $recipientWallet->save();
 
-                $reference = $this->generateReference();
-                $senderReference = 'trx_sen_' . $reference;
+                $reference          = $this->generateReference();
+                $senderReference    = 'trx_sen_' . $reference;
                 $recipientReference = 'trx_rec_' . $reference;
 
                 $this->logTransaction($senderWallet, $amount, 'debit', 'transfer', $senderReference);
@@ -260,26 +259,26 @@ class WalletService
                 // Notify sender
                 $notificationService = new NotificationService();
                 $notificationService->sendTransactionNotification($senderWallet->user, [
-                    'user_name' => $senderWallet->user->name,
-                    'amount' => $amount,
-                    'type' => 'debit',
-                    'category' => 'transfer',
-                    'status' => 'success',
+                    'user_name'   => $senderWallet->user->name,
+                    'amount'      => $amount,
+                    'type'        => 'debit',
+                    'category'    => 'transfer',
+                    'status'      => 'success',
                     'new_balance' => $senderWallet->balance,
-                    'reference' => $senderReference,
-                    'date' => now()->toDateTimeString(),
+                    'reference'   => $senderReference,
+                    'date'        => now()->toDateTimeString(),
                 ]);
 
                 // Notify recipient
                 $notificationService->sendTransactionNotification($recipientWallet->user, [
-                    'user_name' => $recipientWallet->user->name,
-                    'amount' => $amount,
-                    'type' => 'credit',
-                    'category' => 'transfer',
-                    'status' => 'success',
+                    'user_name'   => $recipientWallet->user->name,
+                    'amount'      => $amount,
+                    'type'        => 'credit',
+                    'category'    => 'transfer',
+                    'status'      => 'success',
                     'new_balance' => $recipientWallet->balance,
-                    'reference' => $recipientReference,
-                    'date' => now()->toDateTimeString(),
+                    'reference'   => $recipientReference,
+                    'date'        => now()->toDateTimeString(),
                 ]);
 
                 return [
@@ -302,15 +301,15 @@ class WalletService
     private function logTransaction(Wallet $wallet, float $amount, string $type, string $category, string $reference): void
     {
         Transaction::create([
-            'wallet_id' => $wallet->id,
-            'amount' => $amount,
+            'wallet_id'      => $wallet->id,
+            'amount'         => $amount,
             'balance_before' => $wallet->balance + ($type === 'debit' ? $amount : -$amount),
-            'post_balance' => $wallet->balance,
-            'type' => $type,
-            'status' => 'success',
-            'reference' => $reference,
-            'category' => $category,
-            'charge' => 0, // Add appropriate logic if charges are applied for transfers
+            'post_balance'   => $wallet->balance,
+            'type'           => $type,
+            'status'         => 'success',
+            'reference'      => $reference,
+            'category'       => $category,
+            'charge'         => 0, // Add appropriate logic if charges are applied for transfers
         ]);
     }
 
@@ -327,8 +326,9 @@ class WalletService
      * Retrieve the transaction charge configuration from cache or database.
      * Caching for performance improvement.
      */
-    private function getTransactionChargeConfig(string $transactionType, float $amount): array
+    private function getTransactionChargeConfig(string $transactionType, float $amount, int $walletId = null): array
     {
+
         Log::info("Fetching charge config for type: $transactionType and amount: $amount");
 
         // Define a cache key based on the transaction type
@@ -340,23 +340,25 @@ class WalletService
         });
 
         // Get charge amount and charge percent, defaulting to 0 if not set
-        $chargeAmount = $charge ? $charge->charge_amount : 0;
+        $chargeAmount  = $charge ? $charge->charge_amount : 0;
         $chargePercent = $charge ? $charge->charge_percent : 0;
+
+        // Check for custom wallet charges
+        if ($walletId) {
+            $wallet = Wallet::find($walletId);
+            if ($wallet && $wallet->custom_wallet_charges) {
+                $chargeAmount  = $wallet->custom_wallet_charges->charge_amount ?? $chargeAmount;
+                $chargePercent = $wallet->custom_wallet_charges->charge_percent ?? $chargePercent;
+            }
+        }
 
         Log::info("Charge Amount: $chargeAmount, Charge Percent: $chargePercent");
 
-        // Calculate the total charge based on the amount
-        $calculatedCharge = $chargeAmount;
-
-        // Only add the percentage charge if it's greater than 0
-        if ($chargePercent > 0) {
-            $calculatedCharge += ($chargePercent / 100) * $amount;
-        }
-
         return [
-            'charge_amount' => $chargeAmount,
-            'charge_percent' => $chargePercent,
-            'calculated_charge' => $calculatedCharge,
+            'charge_amount'     => $chargeAmount,
+            'type'              => $transactionType,
+            'calculated_charge' => $chargeAmount + ($chargePercent / 100) * $amount,
+            'charge_percent'    => $chargePercent,
         ];
     }
 
@@ -367,10 +369,10 @@ class WalletService
     {
         TransactionChargesLog::create([
             'transaction_reference' => $transactionReference,
-            'wallet_id' => $walletId,
-            'transaction_type' => $transactionType,
-            'charge_amount' => $chargeAmount,
-            'profit_amount' => $profitAmount,
+            'wallet_id'             => $walletId,
+            'transaction_type'      => $transactionType,
+            'charge_amount'         => $chargeAmount,
+            'profit_amount'         => $profitAmount,
         ]);
     }
 
@@ -406,10 +408,10 @@ class WalletService
 
         if ($dailyTotal + $amount > $limits['daily_limit']) {
             return [
-                'can_transact' => false,
-                'message' => ucfirst($type) . ' daily limit exceeded',
-                'limit_type' => 'daily',
-                'spent' => number_format($dailyTotal, 2),
+                'can_transact'    => false,
+                'message'         => ucfirst($type) . ' daily limit exceeded',
+                'limit_type'      => 'daily',
+                'spent'           => number_format($dailyTotal, 2),
                 'remaining_limit' => number_format($limits['daily_limit'] - $dailyTotal, 2),
             ];
         }
@@ -421,10 +423,10 @@ class WalletService
 
         if ($weeklyTotal + $amount > $limits['weekly_limit']) {
             return [
-                'can_transact' => false,
-                'message' => ucfirst($type) . ' weekly limit exceeded',
-                'limit_type' => 'weekly',
-                'spent' => number_format($weeklyTotal, 2),
+                'can_transact'    => false,
+                'message'         => ucfirst($type) . ' weekly limit exceeded',
+                'limit_type'      => 'weekly',
+                'spent'           => number_format($weeklyTotal, 2),
                 'remaining_limit' => number_format($limits['weekly_limit'] - $weeklyTotal, 2),
             ];
         }
@@ -436,17 +438,17 @@ class WalletService
 
         if ($monthlyTotal + $amount > $limits['monthly_limit']) {
             return [
-                'can_transact' => false,
-                'message' => ucfirst($type) . ' monthly limit exceeded',
-                'limit_type' => 'monthly',
-                'spent' => number_format($monthlyTotal, 2),
+                'can_transact'    => false,
+                'message'         => ucfirst($type) . ' monthly limit exceeded',
+                'limit_type'      => 'monthly',
+                'spent'           => number_format($monthlyTotal, 2),
                 'remaining_limit' => number_format($limits['monthly_limit'] - $monthlyTotal, 2),
             ];
         }
 
         return [
             'can_transact' => true,
-            'message' => 'Transaction within ' . $type . ' limits',
+            'message'      => 'Transaction within ' . $type . ' limits',
         ];
     }
 
@@ -464,11 +466,12 @@ class WalletService
 
         // Prepare the response
         return [
-            'success' => true,
-            'charge_amount' => $chargeConfig['charge_amount'],
-            'charge_percent' => $chargeConfig['charge_percent'],
+            'success'           => true,
+            'service_type'      => $serviceType,
+            'charge_amount'     => $chargeConfig['charge_amount'],
+            'charge_percent'    => $chargeConfig['charge_percent'],
             'calculated_charge' => $chargeConfig['calculated_charge'],
-            'total_amount' => $amount + $chargeConfig['calculated_charge'], // Total amount including charges
+            'total_amount'      => $amount + $chargeConfig['calculated_charge'], // Total amount including charges
         ];
     }
 

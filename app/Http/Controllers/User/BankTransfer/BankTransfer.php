@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\User;
+namespace App\Http\Controllers\User\BankTransfer;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
@@ -9,7 +9,7 @@ use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class WalletController extends Controller
+class BankTransfer extends Controller
 {
     protected $walletService;
 

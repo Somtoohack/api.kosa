@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\AuthorizationPin;
+use App\Models\Currency;
 use App\Models\LoginLog;
 use App\Models\PinHistory;
 use App\Models\UserKYC;
@@ -57,7 +57,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
@@ -74,12 +74,14 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::created(function ($user) {
-            if (!$user->wallet) {
-                $wallet = new Wallet();
-                $wallet->user_id = $user->id;
-                $wallet->balance = 0;
-                $wallet->currency = 'NGN';
-                $wallet->reference = Str::uuid() . '_' . now()->timestamp;
+            if (! $user->wallet) {
+
+                $currency_id         = Currency::where('country_code', $user->country)->first()->id;
+                $wallet              = new Wallet();
+                $wallet->user_id     = $user->id;
+                $wallet->balance     = 0;
+                $wallet->currency_id = $currency_id;
+                $wallet->reference   = Str::uuid() . '_' . now()->timestamp;
                 $wallet->save();
             }
         });
@@ -96,7 +98,7 @@ class User extends Authenticatable
 
     public function wallet()
     {
-        return $this->hasOne(Wallet::class);
+        return $this->hasMany(Wallet::class);
     }
 
     public function virtualBankAccounts(): HasMany

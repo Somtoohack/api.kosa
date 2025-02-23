@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\User\Auth;
 
 use App\Constants\ErrorCodes;
@@ -17,6 +16,7 @@ use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UserAuthController extends Controller
 {
@@ -35,11 +35,11 @@ class UserAuthController extends Controller
         try {
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->sendError(ErrorMessages::INVALID_USER, [], ErrorCodes::INVALID_USER);
             }
 
-            if (!Hash::check($request->password, $user->password)) {
+            if (! Hash::check($request->password, $user->password)) {
                 // Increment failed login attempts
                 $user->increment('failed_attempts');
 
@@ -86,7 +86,7 @@ class UserAuthController extends Controller
 
         } catch (\Throwable $th) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => $th->getMessage(),
             ], 500);
         }
@@ -96,15 +96,15 @@ class UserAuthController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string|min:6',
-                'auth_code' => 'required|array',
+                'email'         => 'required|email',
+                'password'      => 'required|string|min:6',
+                'auth_code'     => 'required|array',
                 'auth_code.otp' => 'required|string|size:6',
             ]);
 
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->sendError(
                     'User not found',
                     [],
@@ -113,7 +113,7 @@ class UserAuthController extends Controller
             }
 
             // Verify password first
-            if (!Hash::check($request->password, $user->password)) {
+            if (! Hash::check($request->password, $user->password)) {
                 return $this->sendError(
                     ErrorMessages::INCORRECT_PASSWORD,
                     [],
@@ -124,7 +124,7 @@ class UserAuthController extends Controller
             // Then verify OTP
             if ($this->otpService->verifyOtp($user, $request->auth_code['otp'])) {
                 // Reset the lock status and failed attempts on successful verification
-                $user->is_locked = false;
+                $user->is_locked       = false;
                 $user->failed_attempts = 0;
                 $user->save();
 
@@ -189,7 +189,7 @@ class UserAuthController extends Controller
 
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->sendError(
                     'Unauthorized access',
                     [],
@@ -197,7 +197,7 @@ class UserAuthController extends Controller
                 );
             }
 
-            if (!Hash::check($request->passcode, $user->password)) {
+            if (! Hash::check($request->passcode, $user->password)) {
                 return $this->sendError(
                     'Incorrect passcode',
                     [],
@@ -232,20 +232,20 @@ class UserAuthController extends Controller
         try {
 
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'country' => $request->country ?? 'NGA',
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'country'  => $request->country ?? 'NGA',
                 'user_key' => getTrx(5) . '-' . now()->timestamp,
                 'password' => Hash::make($request->password),
             ]);
 
             $token = $user->createToken('UserToken')->plainTextToken;
 
-            $ip = $request->ip();
-            if ($ip == '127.0.0.1') {
-                $ip = '102.88.84.85';
-            }
-            dispatch(new LogLoginJob($user, $request->email, $request->device_id, $request->device_name, $ip, $request->header('User-Agent')));
+            // $ip = $request->ip();
+            // if ($ip == '127.0.0.1') {
+            //     $ip = '102.88.84.85';
+            // }
+            // dispatch(new LogLoginJob($user, $request->email, $request->device_id, $request->device_name, $ip, $request->header('User-Agent')));
 
             dispatch(new UserRegisteredEmailJob($user));
             return $this->sendResponse(
@@ -258,6 +258,8 @@ class UserAuthController extends Controller
                 SuccessMessages::LOGIN_SUCCESSFUL
             );
         } catch (\Throwable $th) {
+
+            Log::alert("message: " . $th->getMessage() . " file: " . $th->getFile() . " line: " . $th->getLine());
 
             return $this->sendError('Please try again shortly', [], ErrorCodes::TRY_AGAIN);
         }

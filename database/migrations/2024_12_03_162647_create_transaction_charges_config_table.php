@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('transaction_charges_config', function (Blueprint $table) {
             $table->id();
-            $table->string('transaction_type'); // e.g., 'deposit', 'withdrawal', 'transfer'
-            $table->decimal('charge_amount', 10, 2); // Charge amount
+            $table->string('transaction_type');                   // e.g., 'deposit', 'withdrawal', 'transfer'
+            $table->decimal('charge_amount', 10, 2);              // Charge amount
             $table->decimal('charge_percent', 10, 2)->nullable(); // Charge amount
             $table->timestamps();
         });

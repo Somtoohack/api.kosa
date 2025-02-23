@@ -12,10 +12,16 @@ return [
     | location for this type of information, allowing packages to have
     | a conventional file to locate the various service credentials.
     |
-    */
+     */
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
+    ],
+
+    'kosa_microservice' => [
+        'base_url' => env('KOSA_MICROSERVICE_BASE_URL', 'https://api.mcs.kosa.test'),
+        'integration_target_key' => env('KOSA_INTEGRATION_TARGET_KEY'),
+        'integration_source_key' => env('KOSA_INTEGRATION_SOURCE_KEY'),
     ],
 
     'ses' => [

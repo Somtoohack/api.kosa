@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('wallet_id')->constrained()->onDelete('cascade');
+            $table->foreignId('wallet_key')->constrained('wallet')->onDelete('cascade');
             $table->string('account_number');
             $table->string('account_name');
             $table->string('bank_name');
             $table->boolean('status')->default(true);
-            $table->string('currency', 3)->default('NGN');
             $table->json('meta')->nullable();
             $table->string('provider')->nullable();
-            $table->string('order_ref')->nullable();
+            $table->string('reference')->nullable();
             $table->timestamps();
         });
     }
