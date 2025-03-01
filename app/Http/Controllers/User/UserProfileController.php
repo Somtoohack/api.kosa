@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\User;
 
 use App\Constants\ErrorCodes;
@@ -16,19 +15,19 @@ class UserProfileController extends Controller
     public function createProfile(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:255',
-            'state' => 'required|string|max:255',
-            'lga' => 'required|string',
-            'address' => 'required|string',
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'phone_number'  => 'required|string|max:255',
+            'state'         => 'required|string|max:255',
+            'lga'           => 'required|string',
+            'address'       => 'required|string',
             'date_of_birth' => 'required|date',
         ]);
 
         try {
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->sendMessage('Invalid session', ErrorCodes::INVALID_SESSION);
             }
 
@@ -36,16 +35,16 @@ class UserProfileController extends Controller
                 return $this->sendMessage('User profile already exists', ErrorCodes::PROFILE_ALREADY_EXISTS);
             }
             $user->profile()->create([
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'phone_number' => $request->phone_number,
-                'device_key' => $request->device_key,
-                'device_name' => $request->device_name,
-                'state' => $request->state,
-                'city' => $request->city,
-                'lga' => $request->lga,
-                'address' => $request->address,
+                'first_name'    => $request->first_name,
+                'middle_name'   => $request->middle_name,
+                'last_name'     => $request->last_name,
+                'phone_number'  => $request->phone_number,
+                'device_key'    => $request->device_key,
+                'device_name'   => $request->device_name,
+                'state'         => $request->state,
+                'city'          => $request->city,
+                'lga'           => $request->lga,
+                'address'       => $request->address,
                 'date_of_birth' => $request->date_of_birth,
             ]);
 
@@ -56,7 +55,7 @@ class UserProfileController extends Controller
 
             return $this->sendResponse(
                 [
-                    'user' => new UserProfileResource($user),
+                    'user'  => new UserProfileResource($user),
                     'token' => getValidatedToken($request),
                 ],
                 'User profile created successfully.'
@@ -75,7 +74,7 @@ class UserProfileController extends Controller
 
         try {
             $user = Auth::user();
-            if (!$user) {
+            if (! $user) {
                 return $this->sendMessage('Invalid session', ErrorCodes::INVALID_SESSION);
             }
 
@@ -90,7 +89,7 @@ class UserProfileController extends Controller
 
             return $this->sendResponse(
                 [
-                    'user' => new UserProfileResource($user),
+                    'user'  => new UserProfileResource($user),
                     'token' => getValidatedToken($request),
                 ],
                 'User Tag created successfully.'

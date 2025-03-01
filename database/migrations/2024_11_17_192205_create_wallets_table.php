@@ -15,19 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('reference')->unique();
-            $table->string('key')->unique();
-            $table->decimal('balance', 19, 4)->default(0);         // Increased precision for balance
-            $table->decimal('pending_balance', 19, 4)->default(0); // Increased precision for balance
-            $table->decimal('dispute_balance', 19, 4)->default(0); // Increased precision for balance
+            $table->string('key', 255)->unique();
+            $table->decimal('balance', 19, 2)->default(0);         // Increased precision for balance
+            $table->decimal('pending_balance', 19, 2)->default(0); // Increased precision for balance
+            $table->decimal('dispute_balance', 19, 2)->default(0); // Increased precision for balance
             $table->integer('tier')->default(1);
             $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
             $table->string('status')->default('active');          // Status of the wallet (active, inactive, etc.)
             $table->timestamp('last_transaction_at')->nullable(); // Timestamp of the last transaction
             $table->enum('wallet_type', ['main', 'custom'])->default('main');
-            $table->decimal('daily_limit', 19, 4)->nullable();
-            $table->decimal('weekly_limit', 19, 4)->nullable();
-            $table->decimal('monthly_limit', 19, 4)->nullable();
-            $table->decimal('maximum_balance', 19, 4)->nullable();
             $table->timestamps();
         });
 

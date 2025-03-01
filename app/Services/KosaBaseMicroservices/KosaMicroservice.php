@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\KosaBaseMicroservices;
 
 use Exception;
@@ -13,7 +12,7 @@ class KosaMicroservice
 
     public function __construct()
     {
-        $this->baseUrl = config('services.kosa_microservice.base_url');
+        $this->baseUrl              = config('services.kosa_microservice.base_url');
         $this->integrationTargetKey = config('services.kosa_microservice.integration_target_key');
         $this->integrationSourceKey = config('services.kosa_microservice.integration_source_key');
     }
@@ -21,9 +20,9 @@ class KosaMicroservice
     protected function makeRequest($method, $endpoint, $data = [])
     {
         $response = Http::withHeaders([
-            'accept' => 'application/json',
-            'content-type' => 'application/json',
-            'KOSA-MCS-KEY' => $this->integrationTargetKey,
+            'accept'        => 'application/json',
+            'content-type'  => 'application/json',
+            'KOSA-MCS-KEY'  => $this->integrationTargetKey,
             'KOSA-CORE-KEY' => $this->integrationSourceKey,
         ])
             ->withoutVerifying()

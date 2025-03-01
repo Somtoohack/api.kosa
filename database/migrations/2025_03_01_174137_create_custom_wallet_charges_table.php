@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('wallet_id')->constrained()->onDelete('cascade');
             $table->string('transaction_type'); // e.g., 'deposit', 'withdrawal', 'transfer'
             $table->string('charge_currency');  // e.g., 'USD', 'NGN'
-            $table->decimal('charge_amount', 19, 4);
-            $table->decimal('charge_percent', 19, 4)->nullable(); // Charge percentage
+            $table->decimal('charge_amount', 19, 2);
+            $table->decimal('charge_percent', 19, 2)->nullable(); // Charge percentage
 
             $table->timestamps();
         });

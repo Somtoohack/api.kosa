@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use App\Models\Wallet;
@@ -13,7 +12,7 @@ class WalletStateLog extends Model
     protected $fillable = ['wallet_id', 'state', 'reason', 'metadata', 'applied_at'];
 
     protected $casts = [
-        'metadata' => 'array',
+        'metadata'   => 'array',
         'applied_at' => 'datetime',
     ];
 

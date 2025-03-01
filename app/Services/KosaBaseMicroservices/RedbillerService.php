@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\KosabaseMicroservices;
 
 use App\Services\KosaBaseMicroservices\KosaMicroservice;
@@ -7,50 +6,53 @@ use App\Services\KosaBaseMicroservices\KosaMicroservice;
 class RedbillerService extends KosaMicroservice
 {
     // Define endpoints as constants
-    const ENDPOINT_TRANSFER = 'redbiller/bank/transfer';
-    const ENDPOINT_VERIFY_TRANSFER = 'redbiller/bank/transfer/verify';
-    const ENDPOINT_BANK_LIST = 'redbiller/bank/list';
-    const ENDPOINT_VERIFY_BANK_ACCOUNT = 'redbiller/bank/account/verify';
-    const ENDPOINT_BALANCE = 'redbiller/balance';
-    const ENDPOINT_STATEMENT = 'redbiller/statement';
-    const ENDPOINT_CREATE_PSA = 'redbiller/psa/create';
-    const ENDPOINT_PSA_BALANCE = 'redbiller/psa/balance';
-    const ENDPOINT_PURCHASE_AIRTIME = 'redbiller/bills/airtime/purchase';
-    const ENDPOINT_VERIFY_AIRTIME = 'redbiller/bills/airtime/verify';
-    const ENDPOINT_RETRY_AIRTIME = 'redbiller/bills/airtime/retry';
-    const ENDPOINT_AIRTIME_RETRIED_TRAIL = 'redbiller/bills/airtime/retried-trail';
-    const ENDPOINT_PURCHASE_DATA = 'redbiller/bills/data/purchase';
-    const ENDPOINT_DATA_PLANS = 'redbiller/bills/data/plans';
-    const ENDPOINT_VERIFY_DATA = 'redbiller/bills/data/verify';
-    const ENDPOINT_RETRY_DATA = 'redbiller/bills/data/retry';
-    const ENDPOINT_DATA_RETRIED_TRAIL = 'redbiller/bills/data/retried-trail';
-    const ENDPOINT_PURCHASE_ELECTRICITY = 'redbiller/bills/electricity/purchase';
-    const ENDPOINT_VERIFY_METER = 'redbiller/bills/electricity/verify-meter';
-    const ENDPOINT_VERIFY_ELECTRICITY = 'redbiller/bills/electricity/verify-purchase';
-    const ENDPOINT_PURCHASE_CABLE = 'redbiller/bills/cable/purchase';
-    const ENDPOINT_CABLE_PLANS = 'redbiller/bills/cable/plans';
-    const ENDPOINT_VERIFY_DECODER = 'redbiller/bills/cable/verify-decoder';
-    const ENDPOINT_VERIFY_CABLE = 'redbiller/bills/cable/verify';
-    const ENDPOINT_PURCHASE_INTERNET = 'redbiller/bills/internet/purchase';
-    const ENDPOINT_INTERNET_PLANS = 'redbiller/bills/internet/plans';
-    const ENDPOINT_VERIFY_DEVICE = 'redbiller/bills/internet/verify-device';
-    const ENDPOINT_VERIFY_INTERNET = 'redbiller/bills/internet/verify';
-    const ENDPOINT_CREDIT_BETTING = 'redbiller/bills/betting/credit';
-    const ENDPOINT_BETTING_PROVIDERS = 'redbiller/bills/betting/providers';
-    const ENDPOINT_VERIFY_BETTING_ACCOUNT = 'redbiller/bills/betting/verify-account';
-    const ENDPOINT_VERIFY_BETTING = 'redbiller/bills/betting/verify';
-    const ENDPOINT_LOOKUP_BVN = 'redbiller/kyc/bvn/lookup';
-    const ENDPOINT_VERIFY_BVN2 = 'redbiller/kyc/bvn/verify/2.0';
-    const ENDPOINT_VERIFY_BVN3 = 'redbiller/kyc/bvn/verify/3.0';
-    const ENDPOINT_FIND_BANK_ACCOUNT = 'redbiller/kyc/bank-account/find';
-    const ENDPOINT_LOOKUP_BANK_ACCOUNT = 'redbiller/kyc/bank-account/lookup';
-    const ENDPOINT_BANK_ACCOUNT_TIER = 'redbiller/kyc/bank-account/tier';
+    const ENDPOINT_TRANSFER                   = 'redbiller/bank/transfer';
+    const ENDPOINT_VERIFY_TRANSFER            = 'redbiller/bank/transfer/verify';
+    const ENDPOINT_BANK_LIST                  = 'redbiller/bank/list';
+    const ENDPOINT_VERIFY_BANK_ACCOUNT        = 'redbiller/bank/account/verify';
+    const ENDPOINT_BALANCE                    = 'redbiller/balance';
+    const ENDPOINT_STATEMENT                  = 'redbiller/statement';
+    const ENDPOINT_CREATE_PSA                 = 'redbiller/psa/create';
+    const ENDPOINT_PSA_BALANCE                = 'redbiller/psa/balance';
+    const ENDPOINT_PURCHASE_AIRTIME           = 'redbiller/bills/airtime/purchase';
+    const ENDPOINT_VERIFY_AIRTIME             = 'redbiller/bills/airtime/verify';
+    const ENDPOINT_RETRY_AIRTIME              = 'redbiller/bills/airtime/retry';
+    const ENDPOINT_AIRTIME_RETRIED_TRAIL      = 'redbiller/bills/airtime/retried-trail';
+    const ENDPOINT_PURCHASE_DATA              = 'redbiller/bills/data/purchase';
+    const ENDPOINT_DATA_PLANS                 = 'redbiller/bills/data/plans';
+    const ENDPOINT_VERIFY_DATA                = 'redbiller/bills/data/verify';
+    const ENDPOINT_RETRY_DATA                 = 'redbiller/bills/data/retry';
+    const ENDPOINT_DATA_RETRIED_TRAIL         = 'redbiller/bills/data/retried-trail';
+    const ENDPOINT_PURCHASE_ELECTRICITY       = 'redbiller/bills/electricity/purchase';
+    const ENDPOINT_VERIFY_METER               = 'redbiller/bills/electricity/verify-meter';
+    const ENDPOINT_VERIFY_ELECTRICITY         = 'redbiller/bills/electricity/verify-purchase';
+    const ENDPOINT_PURCHASE_CABLE             = 'redbiller/bills/cable/purchase';
+    const ENDPOINT_CABLE_PLANS                = 'redbiller/bills/cable/plans';
+    const ENDPOINT_VERIFY_DECODER             = 'redbiller/bills/cable/verify-decoder';
+    const ENDPOINT_VERIFY_CABLE               = 'redbiller/bills/cable/verify';
+    const ENDPOINT_PURCHASE_INTERNET          = 'redbiller/bills/internet/purchase';
+    const ENDPOINT_INTERNET_PLANS             = 'redbiller/bills/internet/plans';
+    const ENDPOINT_VERIFY_DEVICE              = 'redbiller/bills/internet/verify-device';
+    const ENDPOINT_VERIFY_INTERNET            = 'redbiller/bills/internet/verify';
+    const ENDPOINT_CREDIT_BETTING             = 'redbiller/bills/betting/credit';
+    const ENDPOINT_BETTING_PROVIDERS          = 'redbiller/bills/betting/providers';
+    const ENDPOINT_VERIFY_BETTING_ACCOUNT     = 'redbiller/bills/betting/verify-account';
+    const ENDPOINT_VERIFY_BETTING             = 'redbiller/bills/betting/verify';
+    const ENDPOINT_LOOKUP_BVN                 = 'redbiller/kyc/bvn/lookup';
+    const ENDPOINT_VERIFY_BVN2                = 'redbiller/kyc/bvn/verify/2.0';
+    const ENDPOINT_VERIFY_BVN                 = 'redbiller/kyc/bvn/verify/1.0';
+    const ENDPOINT_VERIFY_BVN3                = 'redbiller/kyc/bvn/verify/3.0';
+    const ENDPOINT_FIND_BANK_ACCOUNT          = 'redbiller/kyc/bank-account/find';
+    const ENDPOINT_LOOKUP_BANK_ACCOUNT        = 'redbiller/kyc/bank-account/lookup';
+    const ENDPOINT_BANK_ACCOUNT_TIER          = 'redbiller/kyc/bank-account/tier';
     const ENDPOINT_VALIDATE_BANK_ACCOUNT_TIER = 'redbiller/kyc/bank-account/validate-tier';
-    const ENDPOINT_VERIFY_PHONE = 'redbiller/kyc/phone/verify';
-    const ENDPOINT_VERIFY_NIN = 'redbiller/kyc/nin/verify';
-    const ENDPOINT_VERIFY_VOTERS_CARD = 'redbiller/kyc/voters-card/verify';
-    const ENDPOINT_VERIFY_PASSPORT = 'redbiller/kyc/passport/verify';
-    const ENDPOINT_VERIFY_DRIVERS_LICENSE = 'redbiller/kyc/drivers-license/verify';
+    const ENDPOINT_VERIFY_PHONE               = 'redbiller/kyc/phone/verify';
+    const ENDPOINT_VERIFY_NIN                 = 'redbiller/kyc/nin/verify';
+    const ENDPOINT_VERIFY_VOTERS_CARD         = 'redbiller/kyc/voters-card/verify';
+    const ENDPOINT_VERIFY_PASSPORT            = 'redbiller/kyc/passport/verify';
+    const ENDPOINT_VERIFY_DRIVERS_LICENSE     = 'redbiller/kyc/drivers-license/verify';
+    const ENDPOINT_DEPOSIT_WEBHOOK            = 'redbiller/webhook/deposit/receive';
+    const ENDPOINT_VERIFY_DEPOSIT_WEBHOOK     = 'redbiller/webhook/deposit/verify';
 
     // Bank Transfer
     public function initiateBankTransfer($data)
@@ -61,6 +63,11 @@ class RedbillerService extends KosaMicroservice
     public function verifyBankTransfer($data)
     {
         return $this->makeRequest('post', self::ENDPOINT_VERIFY_TRANSFER, $data);
+    }
+
+    public function verifyDepositReference($data)
+    {
+        return $this->makeRequest('post', self::ENDPOINT_VERIFY_DEPOSIT_WEBHOOK, $data);
     }
 
     public function getBankList()
@@ -222,6 +229,10 @@ class RedbillerService extends KosaMicroservice
         return $this->makeRequest('post', self::ENDPOINT_LOOKUP_BVN, $data);
     }
 
+    public function verifyBVN($data)
+    {
+        return $this->makeRequest('post', self::ENDPOINT_VERIFY_BVN, $data);
+    }
     public function verifyBVN2($data)
     {
         return $this->makeRequest('post', self::ENDPOINT_VERIFY_BVN2, $data);

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use App\Models\Wallet;
@@ -10,7 +9,20 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['wallet_id', 'amount', 'type', 'reference', 'balance_before', 'post_balance', 'category', 'charge', 'status'];
+    protected $fillable = [
+        'wallet_id',
+        'user_id',
+        'amount',
+        'net_amount',
+        'type',
+        'reference',
+        'balance_before',
+        'post_balance',
+        'service',
+        'service_id',
+        'description',
+        'charge',
+        'status'];
 
     public function wallet()
     {

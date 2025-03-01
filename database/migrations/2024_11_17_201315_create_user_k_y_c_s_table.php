@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('bvn')->nullable();
             $table->string('nin')->nullable();
+            $table->json('bvn_payload')->nullable();
+            $table->json('nin_payload')->nullable();
             $table->boolean('nin_validated')->default(false);
             $table->boolean('bvn_validated')->default(false);
             $table->timestamps();

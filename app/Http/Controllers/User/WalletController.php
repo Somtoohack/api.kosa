@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Controllers\User;
 
+use App\Constants\ErrorCodes;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Models\VirtualBankAccount;
+use App\Models\Wallet;
 use App\Services\KosabaseMicroservices\RedbillerService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
@@ -20,10 +22,23 @@ class WalletController extends Controller
 
     }
 
-    public function getBalance()
+    public function getBalance(Request $request)
     {
-        $user    = $request->user();
-        $balance = $this->walletService->getBalance($user);
+        $user = $request->user();
+
+        $request->validate([
+            'wallet_key' => 'required|exists:wallets,key',
+        ]);
+
+        $wallet = Wallet::where('key', $request->input('wallet_key'))
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $wallet) {
+            return $this->sendError('Invalid wallet', [], ErrorCodes::TRY_AGAIN);
+        }
+
+        $balance = $this->walletService->getBalance($user, $wallet);
 
         return $this->sendResponse(
             $balance,
@@ -64,16 +79,14 @@ class WalletController extends Controller
     public function deposit(Request $request)
     {
 
-        // $transactionChargeDetails = $this->walletService->getTransactionChargeConfig('deposit', $request->amount);
-
-        // return $transactionChargeDetails;
         $request->validate([
-            'amount' => 'required|numeric|min:10|gt:10',
+            'amount'     => 'required|numeric|min:10|gt:10',
+            'wallet_key' => 'required|exists:wallets,key',
         ]);
-        $amount = $request->amount; // Get the amount from the request
+        $amount = $request->amount;
         $userId = Auth::id();
 
-        $response = $this->walletService->deposit(Auth::user(), $amount);
+        $response = $this->walletService->deposit(Auth::user(), $amount, $request->wallet_key);
 
         if ($response['success']) {
             return $this->sendResponse(
@@ -82,7 +95,8 @@ class WalletController extends Controller
             return response()->json($response);
         } else {
             return $this->sendError(
-                $response['message']
+                $response['message'],
+                $response['reason'],
             );
         }
 
@@ -143,37 +157,61 @@ class WalletController extends Controller
 
         $user = $request->user();
 
-        $bank_ref_id = randomKeyGen(20);
+        $reference = randomKeyGen(20);
+
+        if (! $user->profile) {
+            return $this->sendError('Please create a profile first', [], ErrorCodes::TRY_AGAIN);
+        }
+
+        $userKYC = $user->kyc()->first();
+        // check if theres kyc and bvn has not been validated
+        if (! $userKYC || $userKYC->bvn_validated == false) {
+            return $this->sendError('Please complete your KYC first', [], ErrorCodes::TRY_AGAIN);
+        }
+
+        $request->validate([
+            'bank'       => 'required|string',
+            'wallet_key' => 'required|string|exists:wallets,key',
+        ]);
+
+        $bank   = $request->input('bank');
+        $wallet = Wallet::where('key', $request->input('wallet_key'))
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $wallet) {
+            return $this->sendError('Invalid wallet', [], ErrorCodes::TRY_AGAIN);
+        }
 
         $body = [
             "email"           => $user->email,
             "bvn"             => $user->kyc->bvn, //"22513739970",
-            "bank"            => "Moniepoint",
+            "bank"            => $bank,
             "first_name"      => $user->profile->first_name,
             "surname"         => $user->profile->last_name,
-            "phone_no"        => "08168431219",
+            "phone_no"        => $user->profile->phone_number,
             "date_of_birth"   => $user->profile->date_of_birth,
-            "auto_settlement" => false,
-            "reference"       => $bank_ref_id,
+            "auto_settlement" => 'false',
+            "reference"       => $reference,
         ];
 
         // return $body;
 
-        $newVBA = $this->redbiller->createvirtualbank($body);
+        $response = $this->redbiller->createPaymentSubAccount($body);
 
-        if ($newVBA->status === "true" && $newVBA->response === 200) {
+        if ($response['response'] == 200 && $response['status'] === 'true') {
 
             $createdVBA = VirtualBankAccount::create([
-                'user_id'        => $request->user()->id,
-                'wallet_id'      => $request->user()->wallet->id,
-                'account_number' => $newVBA->details->sub_account->account_no,
-                'bank_name'      => $newVBA->details->sub_account->bank_name,
-                'account_name'   => $newVBA->details->sub_account->account_name ?? 'N/A',
-                'currency'       => 'NGN',
+                'user_id'        => $user->id,
+                'wallet_id'      => $wallet->id,
+                'wallet_key'     => $wallet->key,
+                'account_number' => $response['details']['sub_account']['account_no'],
+                'bank_name'      => $response['details']['sub_account']['bank_name'],
+                'account_name'   => $response['details']['sub_account']['account_name'] ?? 'N/A',
                 'status'         => true,
                 'provider'       => 'redbiller',
-                'meta'           => json_encode($newVBA->details),
-                'order_ref'      => $newVBA->details->sub_account->reference,
+                'meta'           => json_encode($response['details']),
+                'reference'      => $response['details']['sub_account']['reference'],
             ]);
 
             return $this->sendResponse([
@@ -183,11 +221,11 @@ class WalletController extends Controller
                 'currency'       => $createdVBA->currency,
                 'order_ref'      => $createdVBA->order_ref,
             ],
-                $newVBA->message
+                $response['message']
             );
 
         } else {
-            return response()->json($newVBA, 400);
+            return response()->json($response, 400);
         }
 
     }

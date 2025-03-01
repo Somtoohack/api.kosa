@@ -3,8 +3,11 @@
 use App\Http\Controllers\User\Auth\PasswordResetTokenController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\Auth\VerifyEmailController;
+use App\Http\Controllers\User\KYC\UserKYCController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\WalletController;
+
+require __DIR__ . '/redbiller.php';
 
 Route::group(['prefix' => 'user'], function () {
     Route::post('/login', [UserAuthController::class, 'login']);
@@ -29,7 +32,7 @@ Route::group(['prefix' => 'user'], function () {
             Route::post('/withdraw', [WalletController::class, 'withdraw']);
             Route::post('/transfer', [WalletController::class, 'transfer']);
             Route::post('/create-vba', [WalletController::class, 'createVba']);
-            Route::post('/create-vba-redbiller', [WalletController::class, 'createVbaRedbiller']);
+            Route::post('/create-vba/redbiller', [WalletController::class, 'createVbaRedbiller']);
             Route::get('/get-vba', [WalletController::class, 'fetchVBA']);
             Route::get('/get-banks', [WalletController::class, 'getBanks']);
             Route::post('/check-charges', [WalletController::class, 'checkCharges']);
@@ -38,6 +41,11 @@ Route::group(['prefix' => 'user'], function () {
         Route::prefix('profile')->group(function () {
             Route::post('/create', [UserProfileController::class, 'createProfile']);
             Route::post('/tag/create', [UserProfileController::class, 'createTag']);
+        });
+
+        Route::prefix('kyc')->group(function () {
+            Route::post('/bvn/validate', [UserKYCController::class, 'validateBVN']);
+            Route::post('/nin/validate', [UserKYCController::class, 'validateNIN']);
         });
     });
 

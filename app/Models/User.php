@@ -10,6 +10,7 @@ use App\Models\UserKYC;
 use App\Models\UserProfile;
 use App\Models\VirtualBankAccount;
 use App\Models\Wallet;
+use App\Models\WalletLimit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -74,15 +75,55 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::created(function ($user) {
-            if (! $user->wallet) {
-
-                $currency_id         = Currency::where('country_code', $user->country)->first()->id;
+            if ($user->wallets->count() === 0) {
+                $currency            = Currency::where('country_code', $user->country)->first();
                 $wallet              = new Wallet();
                 $wallet->user_id     = $user->id;
                 $wallet->balance     = 0;
-                $wallet->currency_id = $currency_id;
+                $wallet->wallet_type = 'main';
+                $wallet->key         = Str::uuid() . '-' . $user->id . '-' . now()->timestamp;
+                $wallet->currency_id = $currency->id;
                 $wallet->reference   = Str::uuid() . '_' . now()->timestamp;
                 $wallet->save();
+
+                $walletLimit            = new WalletLimit();
+                $walletLimit->wallet_id = $wallet->id;
+                if ($currency->code === 'NGN') {
+                    $walletLimit->credit_daily_limit   = 50000;
+                    $walletLimit->credit_weekly_limit  = 200000;
+                    $walletLimit->credit_monthly_limit = 1000000;
+                    $walletLimit->maximum_balance      = 100000000;
+                    $walletLimit->debit_daily_limit    = 50000;
+                    $walletLimit->debit_weekly_limit   = 200000;
+                    $walletLimit->debit_monthly_limit  = 1000000;
+
+                } elseif ($currency->code === 'USD') {
+
+                    $walletLimit->credit_daily_limit   = 15000;
+                    $walletLimit->credit_weekly_limit  = 60000;
+                    $walletLimit->credit_monthly_limit = 100000;
+                    $walletLimit->maximum_balance      = 500000;
+                    $walletLimit->debit_daily_limit    = 15000;
+                    $walletLimit->debit_weekly_limit   = 60000;
+                    $walletLimit->debit_monthly_limit  = 100000;
+                } elseif ($currency->code === 'GBP') {
+                    $walletLimit->credit_daily_limit   = 10000;
+                    $walletLimit->credit_weekly_limit  = 40000;
+                    $walletLimit->credit_monthly_limit = 100000;
+                    $walletLimit->maximum_balance      = 500000;
+                    $walletLimit->debit_daily_limit    = 10000;
+                    $walletLimit->debit_weekly_limit   = 40000;
+                    $walletLimit->debit_monthly_limit  = 100000;
+                } else {
+                    $walletLimit->credit_daily_limit   = 50000;
+                    $walletLimit->credit_weekly_limit  = 200000;
+                    $walletLimit->credit_monthly_limit = 1000000;
+                    $walletLimit->maximum_balance      = 100000000;
+                    $walletLimit->debit_daily_limit    = 50000;
+                    $walletLimit->debit_weekly_limit   = 200000;
+                    $walletLimit->debit_monthly_limit  = 1000000;
+                }
+                $walletLimit->save();
             }
         });
     }
@@ -96,9 +137,14 @@ class User extends Authenticatable
         return $this->hasOne(UserKYC::class);
     }
 
-    public function wallet()
+    public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class);
+    }
+
+    public function residenceWallet(): HasMany
+    {
+        return $this->hasMany(Wallet::class)->where('wallet_type', 'main');
     }
 
     public function virtualBankAccounts(): HasMany

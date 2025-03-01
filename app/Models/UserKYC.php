@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use App\Models\User;
@@ -12,6 +11,8 @@ class UserKYC extends Model
     protected $fillable = [
         'user_id',
         'bvn',
+        'bvn_payload',
+        'nin_payload',
         'nin',
         'nin_validated',
         'bvn_validated',

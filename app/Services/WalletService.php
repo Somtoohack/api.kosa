@@ -18,14 +18,26 @@ class WalletService
      * Get the user's wallet balance.
      * Optimized to load the wallet with eager loading.
      */
-    public function getBalance(User $user): array
+    public function getBalance(User $user, Wallet $wallet): array
     {
-        $wallet = $user->load('wallet')->wallet;
 
+        $wallet   = $wallet->load('currency');
+        $currency = [
+            'code'         => $wallet->currency->code,
+            'symbol'       => $wallet->currency->symbol,
+            'country_code' => $wallet->currency->country_code,
+            'name'         => $wallet->currency->name,
+            'flag'         => $wallet->currency->flag,
+        ];
         return [
-            'balance'          => floatval($wallet->balance),
-            'currency'         => $wallet->currency,
+            'balances'         => [
+                'available' => floatval($wallet->balance),
+                'pending'   => floatval($wallet->pending_balance),
+                'dispute'   => floatval($wallet->dispute_balance),
+            ],
+            'wallet_key'       => $wallet->key,
             'wallet_reference' => $wallet->reference,
+            'currency'         => $currency,
         ];
     }
 
@@ -33,9 +45,10 @@ class WalletService
      * Deposit money into the user's wallet.
      * Checks credit limits, calculates charges, and updates balance.
      */
-    public function deposit(User $user, float $amount): array
+    public function deposit(User $user, float $amount, $walletKey, $payload): array
     {
-        $wallet = $user->wallet;
+
+        $wallet = $user->wallets()->where('key', $walletKey)->firstOrFail();
 
         if ($wallet->isCreditLoggingDisabled()) {
             return [
@@ -47,14 +60,14 @@ class WalletService
         $creditCheck = $this->canCredit($wallet, $amount);
         if (! $creditCheck['can_transact']) {
             return [
-                'success'       => false,
-                'message'       => $creditCheck['message'],
-                'limit_details' => $creditCheck,
+                'success' => false,
+                'message' => $creditCheck['message'],
+                'reason'  => $creditCheck,
             ];
         }
 
         // Pre-compute the maximum balance check
-        $maxBalance  = $wallet->getTierMaxBalance();
+        $maxBalance  = $wallet->limits->maximum_balance;
         $postBalance = $wallet->balance + $amount - 15; // Account for transaction charge
         if ($postBalance > $maxBalance) {
             return [
@@ -67,22 +80,28 @@ class WalletService
             ];
         }
 
-        return $this->updateBalance($user->id, $amount, 'credit', 'deposit');
+        $update = $this->updateBalance($user->id, $wallet->key, $amount, 'credit', 'deposit');
+        if ($update['success'] == true) {
+            $depositLog = new Deposit();
+        }
+        return $update;
     }
 
     /**
      * Update wallet balance.
      * Optimized to calculate charges outside the transaction and queue notifications.
      */
-    private function updateBalance(int $userId, float $amount, string $type, string $category): array
+    private function updateBalance(int $userId, $walletKey, float $amount, string $type, string $category): array
     {
         // Pre-calculate transaction charge
         $transactionChargeDetails = $this->getTransactionChargeConfig($category, $amount);
         $transactionCharge        = $transactionChargeDetails['calculated_charge'];
 
         try {
-            $result = DB::transaction(function () use ($userId, $amount, $type, $category, $transactionCharge) {
-                $wallet = Wallet::where('user_id', $userId)->lockForUpdate()->firstOrFail();
+            $result = DB::transaction(function () use ($userId, $walletKey, $amount, $type, $category, $transactionCharge) {
+                $wallet = Wallet::where('user_id', $userId)->where('key', $walletKey)->lockForUpdate()->firstOrFail();
+
+                // $wallet = Wallet::where('user_id', $userId)->lockForUpdate()->firstOrFail();
 
                 $initialBalance = $wallet->balance;
                 Log::alert($initialBalance);
@@ -126,14 +145,17 @@ class WalletService
                 // Log transaction and charge
                 $transaction = new Transaction([
                     'wallet_id'      => $wallet->id,
+                    'user_id'        => $wallet->user_id,
                     'amount'         => $amount,
+                    'net_amount'     => $amountAfterCharge,
                     'balance_before' => $initialBalance,
                     'post_balance'   => $wallet->balance,
                     'charge'         => $transactionCharge,
                     'type'           => $type,
                     'status'         => 'success',
+                    'service_id'     => 0,
                     'reference'      => $transactionReference,
-                    'category'       => $category,
+                    'service'        => $category,
                 ]);
                 $transaction->save();
 
@@ -155,6 +177,7 @@ class WalletService
                 return [
                     'success'     => true,
                     'message'     => ucfirst($type) . ' successful',
+                    'transaction' => $transaction,
                     'new_balance' => $wallet->balance,
                 ];
             });

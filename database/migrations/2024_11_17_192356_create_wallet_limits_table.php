@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('wallet_limits', function (Blueprint $table) {
             $table->id();
             $table->foreignId('wallet_id')->constrained()->onDelete('cascade');
-            $table->decimal('daily_limit', 20, 2);
-            $table->decimal('weekly_limit', 20, 2);
-            $table->decimal('monthly_limit', 20, 2);
+            $table->decimal('maximum_balance', 20, 2);
+            $table->decimal('credit_daily_limit', 20, 2);
+            $table->decimal('credit_weekly_limit', 20, 2);
+            $table->decimal('credit_monthly_limit', 20, 2);
+            $table->decimal('debit_daily_limit', 20, 2);
+            $table->decimal('debit_weekly_limit', 20, 2);
+            $table->decimal('debit_monthly_limit', 20, 2);
             $table->timestamps();
-
         });
     }
     /**

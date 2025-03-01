@@ -40,13 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'code' => ErrorCodes::INVALID_REQUEST,
+                    'code'    => ErrorCodes::INVALID_REQUEST,
                     'message' => ErrorMessages::INVALID_REQUEST . '[API]',
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
-                    'code' => ErrorCodes::INVALID_REQUEST,
+                    'code'    => ErrorCodes::INVALID_REQUEST,
                     'message' => ErrorMessages::INVALID_REQUEST . '[WEB]',
                 ], 200);
             }
@@ -68,19 +68,19 @@ return Application::configure(basePath: dirname(__DIR__))
             // // Log the original error messages
             // Log::channel('special')->info('ValidationException: ' . json_encode($exception->errors()));
 
-            $errors = $exception->errors();
+            $errors            = $exception->errors();
             $firstErrorMessage = collect($errors)->flatten()->first(); // Get the first error message
-            $errors = collect($errors)->map(function ($error) {
+            $errors            = collect($errors)->map(function ($error) {
                 return $error[0]; // Return the first error message for each field
             })->toArray();
 
             $combinedErrorMessage = implode(' and ', $errors); // Combine messages
 
             return response()->json([
-                'success' => false,
-                'code' => ValidationConstants::ERROR_CODE,
+                'status'  => false,
+                'code'    => ValidationConstants::ERROR_CODE,
                 'message' => $firstErrorMessage,
-                'errors' => $errors,
+                'errors'  => $errors,
             ], 200);
         });
 

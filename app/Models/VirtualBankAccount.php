@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use App\Models\User;
@@ -15,14 +14,14 @@ class VirtualBankAccount extends Model
     protected $fillable = [
         'user_id',
         'wallet_id',
+        'wallet_key',
         'account_number',
         'account_name',
         'bank_name',
         'status',
-        'currency',
         'meta',
         'provider',
-        'order_ref',
+        'reference',
     ];
 
     protected $casts = [

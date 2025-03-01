@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Traits;
 
 use App\Constants\ErrorMessages;
@@ -13,11 +12,11 @@ trait HttpResponses
     const SUCCESS_CODE = 2000;
 
     // Error codes
-    const ERROR_CODE_BAD_REQUEST = 4000;
-    const ERROR_CODE_UNAUTHORIZED = 4001;
-    const ERROR_CODE_FORBIDDEN = 4003;
-    const ERROR_CODE_NOT_FOUND = 4004;
-    const ERROR_CODE_METHOD_NOT_ALLOWED = 4005;
+    const ERROR_CODE_BAD_REQUEST           = 4000;
+    const ERROR_CODE_UNAUTHORIZED          = 4001;
+    const ERROR_CODE_FORBIDDEN             = 4003;
+    const ERROR_CODE_NOT_FOUND             = 4004;
+    const ERROR_CODE_METHOD_NOT_ALLOWED    = 4005;
     const ERROR_CODE_INTERNAL_SERVER_ERROR = 5000;
 
     /**
@@ -30,10 +29,10 @@ trait HttpResponses
     public function sendResponse($result, $message = 'Successful'): JsonResponse
     {
         $response = [
-            'state' => true,
-            'code' => self::SUCCESS_CODE,
+            'state'   => true,
+            'code'    => self::SUCCESS_CODE,
             'message' => $message,
-            'data' => $result,
+            'data'    => $result,
         ];
 
         return response()->json($response, Response::HTTP_OK);
@@ -50,18 +49,18 @@ trait HttpResponses
      */
     public function sendError(
         $error,
-        $errorMessages = [],
+        $reason = [],
         $errorCode = self::ERROR_CODE_NOT_FOUND,
         $statusCode = Response::HTTP_OK
     ): JsonResponse {
         $response = [
-            'state' => false,
-            'code' => $errorCode,
+            'state'   => false,
+            'code'    => $errorCode,
             'message' => $error,
         ];
 
-        if (!empty($errorMessages)) {
-            $response['error'] = $errorMessages;
+        if (! empty($reason)) {
+            $response['reason'] = $reason;
         }
 
         return response()->json($response, $statusCode);
@@ -78,8 +77,8 @@ trait HttpResponses
     public function sendMessage($message, $code = self::SUCCESS_CODE, $statusCode = Response::HTTP_OK): JsonResponse
     {
         $response = [
-            'state' => true,
-            'code' => $code,
+            'state'   => true,
+            'code'    => $code,
             'message' => $message,
         ];
         return response()->json($response, $statusCode);

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use Closure;
@@ -15,6 +14,11 @@ class CheckJsonHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+
+        // Allow requests to a specific route without checks
+        if ($request->is('redbiller/webhook/*')) {
+            return $next($request);
+        }
         if (
             $request->header('Accept') !== 'application/json' ||
             $request->header('Content-Type') !== 'application/json'
@@ -22,9 +26,9 @@ class CheckJsonHeaders
             return response()->json(
                 [
                     'success' => false,
-                    'code' => 4000,
+                    'code'    => 4000,
                     'message' => 'Request denied',
-                    'error' => 'Invalid request pattern.',
+                    'error'   => 'Invalid request pattern.',
                 ],
                 200
             );
@@ -37,9 +41,9 @@ class CheckJsonHeaders
             return response()->json(
                 [
                     'success' => false,
-                    'code' => 4000,
+                    'code'    => 4000,
                     'message' => 'Request denied',
-                    'error' => 'Unidentified Source or Target.',
+                    'error'   => 'Unidentified Source or Target.',
                 ],
                 200
             );

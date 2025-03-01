@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->decimal('charge', 15, 2)->default(0.00);
             $table->decimal('net_amount', 15, 2);
-            $table->unsignedBigInteger('service_id'); // Reference to the specific service table
+            $table->unsignedBigInteger('service_id')->nullable(); // Reference to the specific service table
             $table->enum('service', ['deposit', 'withdrawal', 'p2p_transfer', 'bank_transfer',
                 'airtime_purchase', 'data_purchase', 'tv_subscription',
                 'electricity_subscription', 'internet_subscription', 'betting_wallet_funding']);
@@ -27,6 +27,7 @@ return new class extends Migration
             $table->enum('type', ['credit', 'debit']);
             $table->enum('status', ['pending', 'success', 'failed'])->default('pending');
             $table->string('reference')->unique();
+            $table->json('meta')->nullable();
             $table->string('description')->nullable();
             $table->timestamp('transaction_date')->useCurrent(); // Date and time of the transaction
             $table->timestamps();
