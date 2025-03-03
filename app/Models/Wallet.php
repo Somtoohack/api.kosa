@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Models\Currency;
+use App\Models\CustomWalletCharge;
 use App\Models\User;
 use App\Models\VirtualBankAccount;
 use App\Models\WalletLimit;
@@ -48,6 +49,13 @@ class Wallet extends Model
     public function limits()
     {
         return $this->hasOne(WalletLimit::class);
+    }
+
+    public function customDepositCharge()
+    {
+
+        return $this->hasOne(CustomWalletCharge::class)->where('transaction_type', 'deposit');
+
     }
 
     public function virtualBankAccounts(): HasMany

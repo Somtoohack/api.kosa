@@ -25,7 +25,7 @@ class KosaMicroservice
             'KOSA-MCS-KEY'  => $this->integrationTargetKey,
             'KOSA-CORE-KEY' => $this->integrationSourceKey,
         ])
-            ->withoutVerifying()
+        // ->withoutVerifying()
             ->$method("{$this->baseUrl}/{$endpoint}", $data);
 
         if ($response->failed()) {

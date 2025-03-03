@@ -34,28 +34,24 @@ class WalletDepositService
         return false;
     }
 
-    private function calculateCharges(float $amount): float
-    {
-        $chargeRate = 0.02;
-        return $amount * $chargeRate;
-    }
-
-    private function checkLimits(Wallet $wallet, float $amount): bool
+    public function checkLimits(Wallet $wallet, float $amount): bool
     {
         $limits = $wallet->getEffectiveCreditLimits();
         $result = $this->checkTransactionLimits($wallet, $amount, 'credit', $limits);
+        Log::alert($result);
         return $result['can_transact'];
     }
 
     private function checkMaxBalance(Wallet $wallet, float $amount): bool
     {
-                               // Implement your max balance check logic here
-        $maxBalance = 50000.0; // Example: maximum wallet balance
+        // Implement your max balance check logic here
+        $limits     = $wallet->getEffectiveCreditLimits();
+        $maxBalance = $limits->maximum_balance; //50000.0; // Example: maximum wallet balance
 
         return ($wallet->balance + $amount) <= $maxBalance;
     }
 
-    public function getTransactionChargeConfig(string $transactionType, float $amount, int $walletId = null): array
+    public function getTransactionChargeConfig(string $transactionType, float $amount, int $walletId): array
     {
         Log::info("Fetching charge config for type: $transactionType and amount: $amount");
 
@@ -73,10 +69,20 @@ class WalletDepositService
 
         // Check for custom wallet charges
         if ($walletId) {
+            Log::alert("Found Custom Charge");
             $wallet = Wallet::find($walletId);
-            if ($wallet && $wallet->custom_wallet_charges) {
-                $chargeAmount  = $wallet->custom_wallet_charges->charge_amount ?? $chargeAmount;
-                $chargePercent = $wallet->custom_wallet_charges->charge_percent ?? $chargePercent;
+            Log::alert($wallet);
+            if ($wallet) {
+                Log::info("Wallet found with ID: $walletId");
+                if ($wallet->customDepositCharge) {
+                    Log::info("Custom wallet charge found with charge amount: " . $wallet->customDepositCharge->charge_amount . " and charge percent: " . $wallet->customDepositCharge->charge_percent);
+                    $chargeAmount  = $wallet->customDepositCharge->charge_amount ?? $chargeAmount;
+                    $chargePercent = $wallet->customDepositCharge->charge_percent ?? $chargePercent;
+                } else {
+                    Log::info("No custom wallet charge found for wallet with ID: $walletId");
+                }
+            } else {
+                Log::info("No wallet found with ID: $walletId");
             }
         }
 
@@ -109,6 +115,8 @@ class WalletDepositService
 
     private function checkTransactionLimits(Wallet $wallet, float $amount, string $type, array $limits): array
     {
+
+        Log::alert("Here Now");
         $dailyTotal = $wallet->transactions()
             ->where('type', $type)
             ->whereDate('created_at', today())
@@ -160,7 +168,7 @@ class WalletDepositService
         ];
     }
 
-    public function checkTransactionCharges(User $user, float $amount, string $serviceType): array
+    public function checkTransactionCharges(float $amount, string $serviceType, int $walletId): array
     {
         if ($amount <= 0) {
             return [
@@ -170,16 +178,17 @@ class WalletDepositService
         }
 
         // Get the transaction charge configuration
-        $chargeConfig = $this->getTransactionChargeConfig($serviceType, $amount);
+        $chargeConfig = $this->getTransactionChargeConfig($serviceType, $amount, $walletId);
 
         // Prepare the response
         return [
             'success'           => true,
             'service_type'      => $serviceType,
-            'charge_amount'     => $chargeConfig['charge_amount'],
+            'fixed_charge'      => $chargeConfig['charge_amount'],
             'charge_percent'    => $chargeConfig['charge_percent'],
             'calculated_charge' => $chargeConfig['calculated_charge'],
-            'total_amount'      => $amount + $chargeConfig['calculated_charge'], // Total amount including charges
+            'amount'            => $amount,
+            'net_amount'        => $amount - $chargeConfig['calculated_charge'], // Total amount including charges
         ];
     }
 }

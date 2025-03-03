@@ -94,10 +94,11 @@ class WebhookController extends Controller
     public function verifyDepositWebhook(Request $request): JsonResponse
     {
         try {
+            // $wallet = Wallet::all()->first();
 
-            $data = $this->walletDepositService->getTransactionChargeConfig('deposit', 100, 1);
+            // $data = $this->walletDepositService->getTransactionChargeConfig('deposit', 40000, 1);
 
-            return response()->json($data, 200);
+            // return response()->json($data, 200);
 
             $request->validate([
                 'reference' => 'required|string',

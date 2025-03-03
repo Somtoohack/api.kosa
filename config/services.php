@@ -19,7 +19,7 @@ return [
     ],
 
     'kosa_microservice' => [
-        'base_url'               => env('KOSA_MICROSERVICE_BASE_URL', 'https://api.mcs.kosa.test'),
+        'base_url'               => env('KOSA_MICROSERVICE_BASE_URL', 'https://api-mcs-kosa.laravel.cloud'),
         'integration_target_key' => env('KOSA_INTEGRATION_TARGET_KEY'),
         'integration_source_key' => env('KOSA_INTEGRATION_SOURCE_KEY'),
     ],

@@ -369,6 +369,10 @@ class WalletService
         // Check for custom wallet charges
         if ($walletId) {
             $wallet = Wallet::find($walletId);
+            if ($wallet && $wallet->customDepositCharge) {
+                $chargeAmount  = $wallet->customDepositCharge->charge_amount ?? $chargeAmount;
+                $chargePercent = $wallet->customDepositCharge->charge_percent ?? $chargePercent;
+            }
             if ($wallet && $wallet->custom_wallet_charges) {
                 $chargeAmount  = $wallet->custom_wallet_charges->charge_amount ?? $chargeAmount;
                 $chargePercent = $wallet->custom_wallet_charges->charge_percent ?? $chargePercent;

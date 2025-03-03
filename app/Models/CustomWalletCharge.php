@@ -16,8 +16,8 @@ class CustomWalletCharge extends Model
     ];
 
     protected $casts = [
-        'charge_amount'  => 'decimal:4',
-        'charge_percent' => 'decimal:4',
+        'charge_amount'  => 'decimal:2',
+        'charge_percent' => 'decimal:2',
     ];
 
     public function wallet()
