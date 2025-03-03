@@ -1,5 +1,5 @@
 <?php
-namespace App\Services\KosabaseMicroservices;
+namespace App\Services\KosaBaseMicroservices;
 
 use App\Services\KosaBaseMicroservices\KosaMicroservice;
 
