@@ -1,5 +1,5 @@
 <?php
-namespace App\Services\KosaBaseMicroservices;
+namespace App\Services\KosabaseMicroservices;
 
 use Exception;
 use Illuminate\Support\Facades\Http;

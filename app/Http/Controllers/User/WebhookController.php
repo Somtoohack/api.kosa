@@ -3,7 +3,7 @@ namespace App\Http\Controllers\User;
 
 use App\Constants\ErrorCodes;
 use App\Http\Controllers\Controller;
-use App\Services\KosaBaseMicroservices\RedbillerService;
+use App\Services\KosabaseMicroservices\RedbillerService;
 use App\Services\WalletDepositService;
 use Exception;
 use Illuminate\Http\JsonResponse;
