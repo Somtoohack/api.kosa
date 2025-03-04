@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Auth\Notifications\ResetPassword;
+use App\Services\KosabaseMicroservices\RedbillerService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(RedbillerService::class, function ($app) {
+            return new RedbillerService();
+        });
     }
 
     /**
