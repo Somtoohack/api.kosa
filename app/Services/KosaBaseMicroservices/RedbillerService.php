@@ -5,7 +5,7 @@ use App\Services\KosabaseMicroservices\KosaMicroservice;
 
 class RedbillerService extends KosaMicroservice
 {
-    // Define endpoints as constants
+    // Define redbiller endpoints as constants
     const ENDPOINT_TRANSFER                   = 'redbiller/bank/transfer';
     const ENDPOINT_VERIFY_TRANSFER            = 'redbiller/bank/transfer/verify';
     const ENDPOINT_BANK_LIST                  = 'redbiller/bank/list';
