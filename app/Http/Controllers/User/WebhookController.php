@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\KosabaseMicroservices\RedbillerService;
 use App\Services\WalletDepositService;
 use Exception;
+use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Log;
@@ -128,6 +129,36 @@ class WebhookController extends Controller
                 ]);
                 return $this->sendError('Webhook verification failed', [], ErrorCodes::FAILED);
             }
+        } catch (Exception $e) {
+            Log::error('Error verifying deposit: ' . $e->getMessage());
+            return $this->sendError('Webhook verification failed', [], ErrorCodes::FAILED);
+        }
+    }
+    public function inspire(Request $request): JsonResponse
+    {
+        try {
+
+            Log::info("Inpiring  --------  ");
+
+            $request->validate([
+                'reference' => 'required|string',
+            ]);
+
+            $reference = $request->input('reference');
+
+            Log::info("Reference  --------  " . $reference);
+
+            $payload = ['reference' => $reference];
+
+            $inspiration = Inspiring::quote();
+
+            Log::info('Inpiration successful for reference: ' . $reference);
+
+            return $this->sendResponse(
+                $inspiration,
+                'Inpiration successfully completed.'
+            );
+
         } catch (Exception $e) {
             Log::error('Error verifying deposit: ' . $e->getMessage());
             return $this->sendError('Webhook verification failed', [], ErrorCodes::FAILED);
