@@ -4,7 +4,7 @@ namespace App\Http\Controllers\User\BankTransfer;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Models\VirtualBankAccount;
-use App\Services\KosabaseMicroservices\RedbillerService;
+use App\Services\RedbillerService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Services\RedbillerService;
 use Illuminate\Auth\Notifications\ResetPassword;
-use App\Services\KosabaseMicroservices\RedbillerService;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

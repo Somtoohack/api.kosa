@@ -3,7 +3,7 @@ namespace App\Http\Controllers\User\KYC;
 
 use App\Constants\ErrorCodes;
 use App\Http\Controllers\Controller;
-use App\Services\KosabaseMicroservices\RedbillerService;
+use App\Services\RedbillerService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
