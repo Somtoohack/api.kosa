@@ -35,7 +35,8 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "App\\Services\\": "app/Services/"
+            "App\\Services\\": "app/Services/",
+            "App\\Services\\KosabaseMicroservices\\": "app/Services/KosabaseMicroservices/"
         },
         "files": [
             "app/Helpers/helpers.php"
