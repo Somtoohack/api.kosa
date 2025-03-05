@@ -1,7 +1,7 @@
 <?php
 namespace App\Services;
 
-use App\Services\KosabaseMicroservices\KosaMicroservice;
+use App\Lib\KosaMicroservice;
 
 class RedbillerService extends KosaMicroservice
 {
