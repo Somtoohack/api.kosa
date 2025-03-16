@@ -310,7 +310,16 @@ function getTransactionCharges($wallet, $amount, $transactionType)
         }
     } else {
         Log::info("No custom wallet charge found for wallet with ID: $wallet->id");
+
     }
+
+    Log::info([
+        'charge_amount'     => $chargeAmount,
+        'type'              => $transactionType,
+        'calculated_charge' => floatval($chargeAmount + ($chargePercent / 100) * $amount),
+        'amount'            => $amount,
+        'charge_percent'    => $chargePercent,
+    ]);
 
     return (object) [
         'charge_amount'     => $chargeAmount,
