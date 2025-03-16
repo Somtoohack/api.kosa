@@ -161,16 +161,22 @@ class WebhookController extends Controller
                     'verification_result' => $verificationResult,
                 ]);
 
-                //Check if deposit with the same reference already exists
+                // Check if deposit with the same reference already exists
                 $existingDeposit = Deposit::where('provider_reference', $verificationResult['details']['reference'])->first();
                 if ($existingDeposit) {
                     Log::info('Deposit already exists for reference: ' . $reference);
                     return $this->sendError('Deposit already exists', [], ErrorCodes::FAILED);
                 }
 
-                $vbaReference                     = $verificationResult['details']['sub_account']['reference'];
-                $transactionReference             = $verificationResult['details']['reference'];
-                $vba                              = VirtualBankAccount::where('reference', $vbaReference)->first();
+                $vbaReference         = $verificationResult['details']['sub_account']['reference'];
+                $transactionReference = $verificationResult['details']['reference'];
+                $vba                  = VirtualBankAccount::where('reference', $vbaReference)->first();
+
+                if (! $vba) {
+                    Log::error('Virtual Bank Account not found for reference: ' . $vbaReference);
+                    return $this->sendError('Virtual Bank Account not found', [], ErrorCodes::FAILED);
+                }
+
                 $wallet                           = Wallet::where('key', $vba->wallet_key)->first()->load('currency');
                 $chargeDetails                    = getTransactionCharges($wallet, $verificationResult['details']['settlement'], 'deposit');
                 $initialBalance                   = $wallet->balance;
