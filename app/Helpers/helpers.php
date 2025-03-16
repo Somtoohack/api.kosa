@@ -6,7 +6,6 @@ use App\Models\TransactionChargesConfig;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -293,15 +292,17 @@ function getIpDetails($ipAddress)
 function getTransactionCharges($wallet, $amount, $transactionType)
 {
     Log::info("Fetching charge config for type: $transactionType and amount: $amount");
-    $cacheKey = 'transaction_charge_config_' . $transactionType;
-    $charge   = Cache::remember($cacheKey, 60, function () use ($transactionType) {
-        return TransactionChargesConfig::where('transaction_type', $transactionType)->first();
-    });
+    $charge = TransactionChargesConfig::where('transaction_type', $transactionType)
+        ->where('currency', $wallet->currency->code)
+        ->first();
+
     $chargeAmount  = $charge ? $charge->charge_amount : 0;
     $chargePercent = $charge ? $charge->charge_percent : 0;
 
     if ($wallet->customWalletCharges != null) {
-        $customCharges = $wallet->customWalletCharges->where('transaction_type', $transactionType)->first();
+        $customCharges = $wallet->customWalletCharges->where('transaction_type', $transactionType)
+            ->where('charge_currency', $wallet->currency->code)
+            ->first();
         if ($customCharges != null) {
             Log::info("Custom wallet charge found with charge amount: " . $customCharges->charge_amount . " and charge percent: " . $customCharges->charge_percent);
             $chargeAmount  = $customCharges->charge_amount;
