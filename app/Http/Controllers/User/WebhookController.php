@@ -99,11 +99,11 @@ class WebhookController extends Controller
                 $deposit->provider_reference      = $transactionReference;
                 $deposit->amount                  = $verificationResult['details']['amount'];
 
-                $deposit->charge     = $chargeDetails->calculated_charge;
-                $deposit->net_amount = $verificationResult['details']['settlement'] - $deposit->charge;
-                $providerCharge      = $deposit->amount - $deposit->net_amount;
-                $providerCharge += $deposit->charge;
-                $deposit->charge                = $providerCharge;
+                $providerCharge                 = $verificationResult['details']['charge'];
+                $kosaCharge                     = $chargeDetails->calculated_charge;
+                $totalCharge                    = $providerCharge + $kosaCharge;
+                $deposit->charge                = $kosaCharge;
+                $deposit->net_amount            = $deposit->amount - $kosaCharge;
                 $deposit->payload               = json_encode($verificationResult);
                 $deposit->status                = 'pending';
                 $deposit->sender_name           = $verificationResult['details']['payer']['account_name'];
@@ -192,11 +192,11 @@ class WebhookController extends Controller
                 $deposit->provider_reference      = $transactionReference;
                 $deposit->amount                  = $verificationResult['details']['amount'];
 
-                $deposit->charge     = $chargeDetails->calculated_charge;
-                $deposit->net_amount = $verificationResult['details']['settlement'] - $deposit->charge;
-                $providerCharge      = $deposit->amount - $deposit->net_amount;
-                $providerCharge += $deposit->charge;
-                $deposit->charge                = $providerCharge;
+                $providerCharge                 = $verificationResult['details']['charge'];
+                $kosaCharge                     = $chargeDetails->calculated_charge;
+                $totalCharge                    = $providerCharge + $kosaCharge;
+                $deposit->charge                = $kosaCharge;
+                $deposit->net_amount            = $deposit->amount - $kosaCharge;
                 $deposit->payload               = json_encode($verificationResult);
                 $deposit->status                = 'pending';
                 $deposit->sender_name           = $verificationResult['details']['payer']['account_name'];
