@@ -19,7 +19,6 @@ class Transaction extends Model
         'balance_before',
         'post_balance',
         'service',
-        'service_id',
         'description',
         'charge',
         'status'];

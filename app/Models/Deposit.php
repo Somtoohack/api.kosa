@@ -7,7 +7,6 @@ class Deposit extends Model
 {
 
     protected $fillable = [
-        'user_id',
         'wallet_id',
         'virtual_bank_account_id',
         'provider_reference',

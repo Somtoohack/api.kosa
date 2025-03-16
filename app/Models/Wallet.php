@@ -51,11 +51,9 @@ class Wallet extends Model
         return $this->hasOne(WalletLimit::class);
     }
 
-    public function customDepositCharge()
+    public function customWalletCharges()
     {
-
-        return $this->hasOne(CustomWalletCharge::class)->where('transaction_type', 'deposit');
-
+        return $this->hasMany(CustomWalletCharge::class)->where('charge_currency', $this->currency->code);
     }
 
     public function virtualBankAccounts(): HasMany
@@ -131,7 +129,7 @@ class Wallet extends Model
             (! $latestDebitEnabledLog || $latestDebitDisabledLog->applied_at > $latestDebitEnabledLog->applied_at);
     }
 
-    public function disableDebit(string $reason = null, array $metadata = []): void
+    public function disableDebit(?string $reason = null, array $metadata = []): void
     {
         $this->stateLogs()->create([
             'state'      => 'debit_disabled',
@@ -141,7 +139,7 @@ class Wallet extends Model
         ]);
     }
 
-    public function enableDebit(string $reason = null, array $metadata = []): void
+    public function enableDebit(?string $reason = null, array $metadata = []): void
     {
         $this->stateLogs()->create([
             'state'      => 'debit_enabled',
@@ -151,7 +149,7 @@ class Wallet extends Model
         ]);
     }
 
-    public function disableCredit(string $reason = null, array $metadata = []): void
+    public function disableCredit(?string $reason = null, array $metadata = []): void
     {
         $this->stateLogs()->create([
             'state'      => 'credit_disabled',
@@ -161,7 +159,7 @@ class Wallet extends Model
         ]);
     }
 
-    public function enableCredit(string $reason = null, array $metadata = []): void
+    public function enableCredit(?string $reason = null, array $metadata = []): void
     {
         $this->stateLogs()->create([
             'state'      => 'credit_enabled',

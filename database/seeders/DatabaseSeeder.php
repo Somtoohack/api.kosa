@@ -3,6 +3,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\CurrencySeeder;
+use Database\Seeders\TransactionChargeConfigSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -20,5 +21,6 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call(CurrencySeeder::class);
+        $this->call(TransactionChargeConfigSeeder::class);
     }
 }

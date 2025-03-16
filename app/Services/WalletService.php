@@ -48,7 +48,7 @@ class WalletService
     public function deposit(User $user, float $amount, $walletKey, $payload): array
     {
 
-        $wallet = $user->wallets()->where('key', $walletKey)->firstOrFail();
+        $wallet = $user->wallets()->where('key', $walletKey)->firstOrFail()->load('currency');
 
         if ($wallet->isCreditLoggingDisabled()) {
             return [

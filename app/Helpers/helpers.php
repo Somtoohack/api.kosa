@@ -1,15 +1,20 @@
 <?php
 
 use App\Lib\ClientInfo;
+use App\Models\Transaction;
+use App\Models\TransactionChargesConfig;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 function systemDetails()
 {
-    $system['name'] = 'Beamer Mock API';
-    $system['version'] = '1.0';
+    $system['name']          = 'Beamer Mock API';
+    $system['version']       = '1.0';
     $system['build_version'] = '1.0';
     return $system;
 }
@@ -31,9 +36,9 @@ function verificationCode($length)
 
 function getNumber($length = 8)
 {
-    $characters = '1234567890';
+    $characters       = '1234567890';
     $charactersLength = strlen($characters);
-    $randomString = '';
+    $randomString     = '';
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
@@ -42,15 +47,15 @@ function getNumber($length = 8)
 
 function getTrx($length = 12)
 {
-    $characters = strtolower('ABCDEFGHJKMNOPQRSTUVWXYZ123456789');
+    $characters       = strtolower('ABCDEFGHJKMNOPQRSTUVWXYZ123456789');
     $charactersLength = strlen($characters);
-    $randomString = '';
+    $randomString     = '';
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
 
     $timestamp = Carbon::now()->format('YmdHis');
-    $key = $randomString . $timestamp;
+    $key       = $randomString . $timestamp;
 
     $key = str_shuffle($key);
     return strrev($key);
@@ -175,8 +180,8 @@ function dateSorting($arr)
 function keyGenerator($length = 50)
 {
     $characters = 'abcdefghijklmnpqrstuvwxyz0123456789';
-    $string = '';
-    $max = strlen($characters) - 1;
+    $string     = '';
+    $max        = strlen($characters) - 1;
     for ($i = 0; $i < $length; $i++) {
         $string .= $characters[mt_rand(0, $max)];
     }
@@ -186,13 +191,13 @@ function keyGenerator($length = 50)
 function randomKeyGen($length = 36)
 {
     $characters = 'abcdefghijklmnpqrstuvwxyz0123456789';
-    $string = '';
-    $max = strlen($characters) - 1;
+    $string     = '';
+    $max        = strlen($characters) - 1;
     for ($i = 0; $i < $length; $i++) {
         $string .= $characters[mt_rand(0, $max)];
     }
     $timestamp = Carbon::now()->format('YmdHis');
-    $key = $string . $timestamp;
+    $key       = $string . $timestamp;
     return strrev($key);
 }
 
@@ -215,7 +220,7 @@ function chargeCalculator($amount, $percent, $fixed)
 function getSleepImage()
 {
     $images = glob('assets/images/frontend/sleep/*');
-    $image = $images[rand(0, count(@$images ?? []) - 1)];
+    $image  = $images[rand(0, count(@$images ?? []) - 1)];
 
     if ($image) {
         $image = asset($image);
@@ -247,7 +252,7 @@ function getValidatedToken(Request $request)
 {
     $token = $request->header('Authorization');
 
-    if (!$token) {
+    if (! $token) {
         return null;
     }
 
@@ -263,10 +268,10 @@ function getIpDetails($ipAddress)
         $data = $response->json();
 
         return [
-            'country' => $data['country_name'],
-            'region' => $data['region'],
-            'city' => $data['city'],
-            'latitude' => $data['latitude'],
+            'country'   => $data['country_name'],
+            'region'    => $data['region'],
+            'city'      => $data['city'],
+            'latitude'  => $data['latitude'],
             'longitude' => $data['longitude'],
         ];
     } catch (\Illuminate\Http\Client\RequestException $e) {
@@ -282,4 +287,111 @@ function getIpDetails($ipAddress)
         Log::error("Error fetching IP data: " . $e->getMessage());
         return null; // or return a default value, or throw a custom exception
     }
+}
+
+//Create a helper function to check and calculate specific transaction charges for a transaction on user specific wallets using the walletid
+function getTransactionCharges($wallet, $amount, $transactionType)
+{
+    Log::info("Fetching charge config for type: $transactionType and amount: $amount");
+    $cacheKey = 'transaction_charge_config_' . $transactionType;
+    $charge   = Cache::remember($cacheKey, 60, function () use ($transactionType) {
+        return TransactionChargesConfig::where('transaction_type', $transactionType)->first();
+    });
+    $chargeAmount  = $charge ? $charge->charge_amount : 0;
+    $chargePercent = $charge ? $charge->charge_percent : 0;
+
+    if ($wallet->customWalletCharges != null) {
+        $customCharges = $wallet->customWalletCharges->where('transaction_type', $transactionType)->first();
+        if ($customCharges != null) {
+            Log::info("Custom wallet charge found with charge amount: " . $customCharges->charge_amount . " and charge percent: " . $customCharges->charge_percent);
+            $chargeAmount  = $customCharges->charge_amount;
+            $chargePercent = $customCharges->charge_percent;
+        }
+    } else {
+        Log::info("No custom wallet charge found for wallet with ID: $wallet->id");
+    }
+
+    return (object) [
+        'charge_amount'     => $chargeAmount,
+        'type'              => $transactionType,
+        'calculated_charge' => floatval($chargeAmount + ($chargePercent / 100) * $amount),
+        'amount'            => $amount,
+        'charge_percent'    => $chargePercent,
+    ];
+}
+
+//Create a helper function to check and calculate wallet credit  limits for a wallet
+function checkTransactionLimits(Wallet $wallet, float $amount, string $type, array $limits): array
+{
+    $dailyTotal = $wallet->transactions()
+        ->where('type', $type)
+        ->whereDate('created_at', today())
+        ->sum('amount');
+
+    if ($dailyTotal + $amount > $limits['daily_limit']) {
+        return [
+            'can_transact'    => false,
+            'message'         => ucfirst($type) . ' daily limit exceeded',
+            'limit_type'      => 'daily',
+            'spent'           => number_format($dailyTotal, 2),
+            'remaining_limit' => number_format($limits['daily_limit'] - $dailyTotal, 2),
+        ];
+    }
+
+    $weeklyTotal = $wallet->transactions()
+        ->where('type', $type)
+        ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+        ->sum('amount');
+
+    if ($weeklyTotal + $amount > $limits['weekly_limit']) {
+        return [
+            'can_transact'    => false,
+            'message'         => ucfirst($type) . ' weekly limit exceeded',
+            'limit_type'      => 'weekly',
+            'spent'           => number_format($weeklyTotal, 2),
+            'remaining_limit' => number_format($limits['weekly_limit'] - $weeklyTotal, 2),
+        ];
+    }
+
+    $monthlyTotal = $wallet->transactions()
+        ->where('type', $type)
+        ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+        ->sum('amount');
+
+    if ($monthlyTotal + $amount > $limits['monthly_limit']) {
+        return [
+            'can_transact'    => false,
+            'message'         => ucfirst($type) . ' monthly limit exceeded',
+            'limit_type'      => 'monthly',
+            'spent'           => number_format($monthlyTotal, 2),
+            'remaining_limit' => number_format($limits['monthly_limit'] - $monthlyTotal, 2),
+        ];
+    }
+
+    return [
+        'can_transact' => true,
+        'message'      => 'Transaction within ' . $type . ' limits',
+    ];
+}
+
+function logDepositStatement($wallet, $deposit, $initialBalance, )
+{
+
+    $transaction = new Transaction([
+        'wallet_id'      => $wallet->id,
+        'user_id'        => $wallet->user_id,
+        'amount'         => $deposit->amount,
+        'net_amount'     => $deposit->net_amount,
+        'charge'         => $deposit->charge,
+        'balance_before' => $initialBalance,
+        'post_balance'   => $wallet->balance,
+        'type'           => 'credit',
+        'status'         => 'success',
+        'description'    => 'Deposit of ' . number_format($deposit->net_amount, 2) . ' to ' . $wallet->currency->code . ' wallet',
+        'reference'      => $deposit->provider_reference,
+        'service'        => 'deposit',
+    ]);
+    $transaction->save();
+
+    return $transaction;
 }
