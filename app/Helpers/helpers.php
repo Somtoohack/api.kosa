@@ -292,41 +292,53 @@ function getIpDetails($ipAddress)
 function getTransactionCharges($wallet, $amount, $transactionType)
 {
     Log::info("Fetching charge config for type: $transactionType and amount: $amount");
-    $charge = TransactionChargesConfig::where('transaction_type', $transactionType)
+
+    $chargeConfig = TransactionChargesConfig::where('transaction_type', $transactionType)
         ->where('currency', $wallet->currency->code)
         ->first();
 
-    $chargeAmount  = $charge ? $charge->charge_amount : 0;
-    $chargePercent = $charge ? $charge->charge_percent : 0;
+    $chargeAmount  = $chargeConfig->charge_amount ?? 0;
+    $chargePercent = $chargeConfig->charge_percent ?? 0;
+    $chargeCap     = $chargeConfig->charge_cap ?? null;
 
-    if ($wallet->customWalletCharges != null) {
+    if ($wallet->customWalletCharges) {
         $customCharges = $wallet->customWalletCharges->where('transaction_type', $transactionType)
             ->where('charge_currency', $wallet->currency->code)
             ->first();
-        if ($customCharges != null) {
-            Log::info("Custom wallet charge found with charge amount: " . $customCharges->charge_amount . " and charge percent: " . $customCharges->charge_percent);
+
+        if ($customCharges) {
+            Log::info("Custom wallet charge found with charge amount: {$customCharges->charge_amount} and charge percent: {$customCharges->charge_percent}");
             $chargeAmount  = $customCharges->charge_amount;
             $chargePercent = $customCharges->charge_percent;
+            $chargeCap     = $customCharges->charge_cap;
         }
     } else {
-        Log::info("No custom wallet charge found for wallet with ID: $wallet->id");
+        Log::info("No custom wallet charge found for wallet with ID: {$wallet->id}");
+    }
 
+    $calculatedCharge = $chargeAmount + ($chargePercent / 100) * $amount;
+
+    // Apply charge cap if it exists
+    if ($chargeCap !== null && $calculatedCharge > $chargeCap) {
+        $calculatedCharge = $chargeCap;
     }
 
     Log::info([
         'charge_amount'     => $chargeAmount,
         'type'              => $transactionType,
-        'calculated_charge' => floatval($chargeAmount + ($chargePercent / 100) * $amount),
+        'calculated_charge' => $calculatedCharge,
         'amount'            => $amount,
         'charge_percent'    => $chargePercent,
+        'charge_cap'        => $chargeCap,
     ]);
 
     return (object) [
         'charge_amount'     => $chargeAmount,
         'type'              => $transactionType,
-        'calculated_charge' => floatval($chargeAmount + ($chargePercent / 100) * $amount),
+        'calculated_charge' => $calculatedCharge,
         'amount'            => $amount,
         'charge_percent'    => $chargePercent,
+        'charge_cap'        => $chargeCap,
     ];
 }
 
@@ -379,8 +391,14 @@ function checkTransactionLimits(Wallet $wallet, float $amount, string $type, arr
     }
 
     return [
-        'can_transact' => true,
-        'message'      => 'Transaction within ' . $type . ' limits',
+        'can_transact'            => true,
+        'daily_spent'             => number_format($dailyTotal, 2),
+        'weekly_spent'            => number_format($weeklyTotal, 2),
+        'monthly_spent'           => number_format($monthlyTotal, 2),
+        'daily_remaining_limit'   => number_format($limits['daily_limit'] - $dailyTotal, 2),
+        'weekly_remaining_limit'  => number_format($limits['weekly_limit'] - $weeklyTotal, 2),
+        'monthly_remaining_limit' => number_format($limits['monthly_limit'] - $monthlyTotal, 2),
+        'message'                 => 'Transaction within ' . $type . ' limits',
     ];
 }
 
@@ -404,4 +422,15 @@ function logDepositStatement($wallet, $deposit, $initialBalance, )
     $transaction->save();
 
     return $transaction;
+}
+
+function logCharge(string $transactionReference, int $walletId, string $transactionType, float $chargeAmount, ?float $profitAmount): void
+{
+    TransactionChargesLog::create([
+        'transaction_reference' => $transactionReference,
+        'wallet_id'             => $walletId,
+        'transaction_type'      => $transactionType,
+        'charge_amount'         => $chargeAmount,
+        'profit_amount'         => $profitAmount,
+    ]);
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('currency');                           // e.g., 'deposit', 'withdrawal', 'transfer'
             $table->decimal('charge_amount', 10, 2);              // Charge amount
             $table->decimal('charge_percent', 10, 2)->nullable(); // Charge amount
+            $table->decimal('charge_cap', 10, 2)->nullable();     // Charge percentage
             $table->timestamps();
         });
     }

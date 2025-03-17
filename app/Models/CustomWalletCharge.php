@@ -13,6 +13,7 @@ class CustomWalletCharge extends Model
         'charge_amount',
         'charge_currency',
         'charge_percent',
+        'charge_cap',
     ];
 
     protected $casts = [

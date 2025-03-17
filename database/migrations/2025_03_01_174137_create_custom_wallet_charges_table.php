@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('charge_currency');  // e.g., 'USD', 'NGN'
             $table->decimal('charge_amount', 19, 2);
             $table->decimal('charge_percent', 19, 2)->nullable(); // Charge percentage
+            $table->decimal('charge_cap', 19, 2)->nullable();     // Charge percentage
 
             $table->timestamps();
         });

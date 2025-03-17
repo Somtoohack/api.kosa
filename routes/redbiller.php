@@ -8,5 +8,7 @@ Route::prefix('redbiller')->group(function () {
         Route::post('/deposit/receive', [WebhookController::class, 'handleDepositWebhook']);
         Route::post('/deposit/verify', [WebhookController::class, 'verifyDepositWebhook']);
 
+        Route::post('/test', [WebhookController::class, 'sendDepositNotification']);
+
     });
 });

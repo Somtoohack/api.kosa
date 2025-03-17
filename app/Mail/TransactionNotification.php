@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -10,16 +9,22 @@ class TransactionNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $transactionDetails;
+    public $subject;
+    public $body;
 
-    public function __construct(array $transactionDetails)
+    public function __construct($subject, $body)
     {
-        $this->transactionDetails = $transactionDetails;
+        $this->subject = $subject;
+        $this->body    = $body;
     }
 
     public function build()
     {
-        return $this->subject('Transaction Notification')
-            ->view('mails.transaction_notification');
+        return $this->from('mailbox@reventsystems.com', 'Kosa Team')
+            ->view('mails.trans_notification')
+            ->subject($this->subject)
+            ->with([
+                'body' => $this->body,
+            ]);
     }
 }

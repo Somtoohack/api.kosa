@@ -1,11 +1,12 @@
 <?php
 namespace App\Services;
 
-use App\Models\TransactionChargesLog;
+use App\Mail\TransactionNotification;
 use App\Models\Wallet;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class WalletCreditService
 {
@@ -77,14 +78,22 @@ class WalletCreditService
         return ($wallet->balance + $amount) <= $maxBalance;
     }
 
-    private function logCharge(string $transactionReference, int $walletId, string $transactionType, float $chargeAmount, ?float $profitAmount): void
+    public function sendDepositNotification($deposit)
     {
-        TransactionChargesLog::create([
-            'transaction_reference' => $transactionReference,
-            'wallet_id'             => $walletId,
-            'transaction_type'      => $transactionType,
-            'charge_amount'         => $chargeAmount,
-            'profit_amount'         => $profitAmount,
-        ]);
+        try {
+            $wallet          = Wallet::find($deposit->wallet_id);
+            $currencyCode    = $wallet->currency->code;
+            $formattedAmount = $currencyCode . ' ' . number_format($deposit->amount, 2);
+            $message         = "<p>Dear {$wallet->user->name},</p>
+<p>We are pleased to inform you that you have received <strong>{$formattedAmount}</strong> in your <strong>{$currencyCode}</strong> wallet from <strong>{$deposit->sender_name}</strong>.</p>
+<p>Your transaction reference is <strong>{$deposit->provider_reference}</strong>.</p>";
+            Mail::to($wallet->user->email)->queue(new TransactionNotification(
+                'Transaction Notification', $message
+            ));
+            Log::info("Deposit notification sent to user {$wallet->user->email} for amount {$formattedAmount} \n {$message}");
+        } catch (Exception $e) {
+            Log::error("Failed to send deposit notification to user {$wallet->user->email}: " . $e->getMessage());
+        }
     }
+
 }

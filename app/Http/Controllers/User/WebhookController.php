@@ -123,6 +123,8 @@ class WebhookController extends Controller
                         $wallet = Wallet::find($wallet->id);
                         logDepositStatement($wallet, $deposit, $initialBalance);
                         Log::info('Wallet credited successfully for deposit: ' . $transactionReference);
+
+                        $this->walletCreditService->sendDepositNotification($deposit);
                     } else {
                         Log::error('Error crediting wallet for deposit: ' . $transactionReference);
                     }
@@ -216,6 +218,8 @@ class WebhookController extends Controller
                         $wallet = Wallet::find($wallet->id);
                         logDepositStatement($wallet, $deposit, $initialBalance);
                         Log::info('Wallet credited successfully for deposit: ' . $transactionReference);
+
+                        $this->walletCreditService->sendDepositNotification($deposit);
                     } else {
                         Log::error('Error crediting wallet for deposit: ' . $transactionReference);
                     }
@@ -238,6 +242,12 @@ class WebhookController extends Controller
             Log::error('Error verifying deposit: ' . $e);
             return $this->sendError('Webhook verification failed', [], ErrorCodes::FAILED);
         }
+    }
+
+    public function sendDepositNotification(Request $request)
+    {
+        $deposit = Deposit::first();
+        $this->walletCreditService->sendDepositNotification($deposit);
     }
 
 }

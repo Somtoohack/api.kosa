@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Jobs;
 
 use App\Mail\TransactionNotification;
@@ -25,7 +24,7 @@ class SendTransactionNotification implements ShouldQueue
      */
     public function __construct($user, $transactionDetails)
     {
-        $this->user = $user;
+        $this->user               = $user;
         $this->transactionDetails = $transactionDetails;
     }
 

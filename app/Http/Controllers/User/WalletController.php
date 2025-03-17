@@ -51,27 +51,66 @@ class WalletController extends Controller
         $request->validate([
             'amount'       => 'required|numeric|min:1',
             'service_type' => 'required|string|max:255',
+            'wallet_key'   => 'required|exists:wallets,key',
         ]);
 
         // Retrieve the authenticated user
-        $user = $request->user();
-
-        // Get the amount and service type from the request
-        $amount      = $request->input('amount');
-        $serviceType = $request->input('service_type');
-
-        // Call the WalletService to check for transaction charges
-        $chargeDetails = $this->walletService->checkTransactionCharges($user, $amount, $serviceType);
-
-        // Return the response based on the success of the operation
-        if ($chargeDetails['success']) {
+        $user   = $request->user();
+        $wallet = Wallet::where('key', $request->input('wallet_key'))
+            ->where('user_id', $user->id)
+            ->first();
+        if (! $wallet) {
+            return $this->sendError('Invalid wallet', [], ErrorCodes::TRY_AGAIN);
+        }
+        $amount        = $request->input('amount');
+        $serviceType   = $request->input('service_type');
+        $chargeDetails = getTransactionCharges($wallet, $amount, $serviceType, );
+        if ($chargeDetails) {
             return $this->sendResponse(
                 $chargeDetails,
                 'Transaction charges retrieved successfully.'
             );
         } else {
             return $this->sendError(
-                $chargeDetails['message']
+                'Transaction charges could not be retrieved.'
+            );
+        }
+    }
+
+    public function checkLimits(Request $request)
+    {
+        // Validate the incoming request data
+        $request->validate([
+            'amount'     => 'required|numeric|min:1',
+            'type'       => 'required|string|max:255',
+            'wallet_key' => 'required|exists:wallets,key',
+        ]);
+
+        // Retrieve the authenticated user
+        $user   = $request->user();
+        $wallet = Wallet::where('key', $request->input('wallet_key'))
+            ->where('user_id', $user->id)
+            ->first();
+        if (! $wallet) {
+            return $this->sendError('Invalid wallet', [], ErrorCodes::TRY_AGAIN);
+        }
+        $amount = $request->input('amount');
+        $type   = $request->input('type');
+        $limits = [];
+        if ($type == 'credit') {
+            $limits = $wallet->getEffectiveCreditLimits();
+        } else {
+            $limits = $wallet->getEffectiveDebitLimits();
+        }
+        $transactionLimit = checkTransactionLimits($wallet, $amount, $type, $limits);
+        if ($transactionLimit['can_transact']) {
+            return $this->sendResponse(
+                $transactionLimit,
+                'Transaction limits retrieved successfully.'
+            );
+        } else {
+            return $this->sendError(
+                $transactionLimit['message']
             );
         }
     }
@@ -105,12 +144,30 @@ class WalletController extends Controller
     public function withdraw(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:10|gt:10',
+            'amount'     => 'required|numeric|min:10|gt:10',
+            'wallet_key' => 'required|exists:wallets,key',
         ]);
-        $amount   = $request->amount; // Get the amount from the request
-        $userId   = Auth::id();
-        $response = $this->walletService->withdraw(Auth::user(), $amount);
-        return response()->json($response);
+        $wallet = Wallet::where('key', $request->input('wallet_key'))
+            ->where('user_id', Auth::id())
+            ->first();
+        if (! $wallet) {
+            return $this->sendError('Invalid wallet', [], ErrorCodes::TRY_AGAIN);
+        }
+        $amount        = $request->amount;
+        $chargeDetails = getTransactionCharges($wallet, $amount, 'withdrawal', );
+        if (! $chargeDetails) {
+            return $this->sendError('Transaction charges could not be retrieved.'[], ErrorCodes::TRY_AGAIN);
+        }
+        $charge = $chargeDetails->calculated_charge;
+
+        $limits           = $wallet->getEffectiveDebitLimits();
+        $transactionLimit = checkTransactionLimits($wallet, $amount, 'debit', $limits);
+        if ($transactionLimit['can_transact'] == false) {
+            return $this->sendError($transactionLimit['message'], [], ErrorCodes::TRY_AGAIN);
+        }
+
+        // $response = $this->walletService->withdraw(Auth::user(), $amount);
+        // return response()->json($response);
     }
 
     public function transfer(Request $request)
